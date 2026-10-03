@@ -1,394 +1,291 @@
-# 🌾 Fertilizer Inventory Management System — Roadmap
+# 🌾 Fertilizer Inventory Management System — Live Interactive Roadmap
 
-## 📋 Project Overview
-
-**Client:** Chachu (Uncle's) Fertilizer Shop  
-**Purpose:** Complete inventory, sales & purchase management system  
-**Platforms:** Web (Admin + Vendor) → Mobile App (React Native)
-
----
-
-## 🛠️ Tech Stack
-
-| Layer | Technology | Purpose |
-|-------|-----------|---------|
-| **Frontend (Web)** | Next.js 14+ (App Router) | Admin Panel & Vendor Portal |
-| **Backend (API)** | Nest.js | REST/GraphQL API Server |
-| **Database** | Supabase (PostgreSQL) | DB + Auth + Storage + Realtime |
-| **Mobile App** | React Native (Expo) | Vendor/Salesman Mobile App |
-| **State Mgmt** | Zustand / TanStack Query | Client-side state & caching |
-| **UI Library** | Shadcn/UI + Tailwind CSS | Premium UI components |
-| **Auth** | Supabase Auth + JWT | Role-based authentication |
-| **Deployment** | Vercel (Web) + Railway (API) | Hosting |
+> **Client:** Fertilizer, Seeds & Agricultural Pesticides Agency (Chachu's Shop)  
+> **Architecture:** Turborepo Monorepo (Next.js 16 Web Admin + NestJS 12 API + Supabase PostgreSQL + React Native Mobile)  
+> **State Management:** Zustand (Client POS Cart & Offline Billing)  
+> **Last Updated:** October 2026
 
 ---
 
-## 👥 User Roles
+## 🚦 Status Legend
 
-| Role | Access | Description |
-|------|--------|-------------|
-| **Super Admin** | Full System | Shop owner (Chachu) — complete control |
-| **Admin** | Management | Manage inventory, users, reports |
-| **Vendor/Supplier** | Vendor Portal | View orders, manage supply, invoices |
-| **Salesman** | POS + Limited | Sales, billing, basic inventory view |
-
----
-
-## 🗺️ Development Phases
-
-### ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-### 📌 PHASE 1: Foundation & Setup (Week 1-2)
-### ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-#### 1.1 Project Architecture Setup
-- [ ] Monorepo setup (Turborepo/Nx)
-  ```
-  fertilizer-inventory/
-  ├── apps/
-  │   ├── web/          → Next.js (Admin + Vendor)
-  │   ├── api/          → Nest.js Backend
-  │   └── mobile/       → React Native App
-  ├── packages/
-  │   ├── shared/       → Shared types, utils, constants
-  │   ├── ui/           → Shared UI components
-  │   └── config/       → Shared configs (ESLint, TS)
-  ├── supabase/         → Migrations, seeds, edge functions
-  ├── docs/             → Documentation
-  └── package.json
-  ```
-
-#### 1.2 Supabase Database Schema Design
-- [ ] Database tables design (see schema below)
-- [ ] Row Level Security (RLS) policies
-- [ ] Supabase Auth configuration
-- [ ] Storage buckets (product images, invoices)
-- [ ] Database migrations setup
-
-#### 1.3 Backend Foundation (Nest.js)
-- [ ] Nest.js project with modular architecture
-- [ ] Supabase client integration
-- [ ] JWT Auth Guard & Role-based access
-- [ ] Global exception filters & validation pipes
-- [ ] Swagger API documentation setup
-- [ ] Logger & error handling middleware
+| Icon | Status | Meaning |
+|:---:|:---|:---|
+| 🟢 | **Completed (100%)** | Fully implemented, database-backed, unit tested, and operational in code. |
+| 🟡 | **In Progress / Partial** | Architecture or initial sub-features completed; remaining implementation actively underway. |
+| 🔴 | **Pending (Not Started)** | Scheduled for upcoming sprint/phase. |
 
 ---
 
-### ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-### 📌 PHASE 2: Authentication & User Management (Week 2-3)
-### ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+## 📊 Live Progress Summary
 
-#### 2.1 Authentication System
-- [ ] Login / Register pages (Next.js)
-- [ ] Supabase Auth integration (Email/Password)
-- [ ] Phone OTP login (optional)
-- [ ] Forgot password flow
-- [ ] Session management & token refresh
-- [ ] Protected routes middleware
-
-#### 2.2 User Management (Admin)
-- [ ] Create/Edit/Delete users
-- [ ] Role assignment (Admin, Vendor, Salesman)
-- [ ] User profile management
-- [ ] Activity log per user
-- [ ] Enable/Disable user accounts
+| Phase | Module Name | Status | Completion | Notes & Key Highlights |
+|:---|:---|:---:|:---:|:---|
+| **Phase 1** | Foundation, Monorepo & Database Setup | 🟢 | **100%** | Turborepo, pnpm, Supabase live connect, 12 tables, indexes & RLS |
+| **Phase 2** | Authentication, Roles & Shop Profiles | 🟢 | **100%** | NestJS Auth JWT, RBAC guards, Login/Register UI, Dashboard shell |
+| **Special** | Bilingual Urdu & English Localization (RTL) | 🟢 | **100%** | 1-Click Toggle, Noto Nastaliq Urdu, full RTL & desi dukandari terms |
+| **Phase 3** | Fertilizer Products & Inventory Management | 🟢 | **100%** | Full CRUD API, categories, stock adjustments, low stock alerts, /dashboard/products UI |
+| **Phase 4** | Vendors (Suppliers) & Purchases (Stock In) | 🔴 | **10%** | DB tables ready; Purchase entry & vendor ledger pending |
+| **Phase 5** | Customers (Farmers/Zamindar) & Khata Ledger | 🔴 | **10%** | DB tables ready; Farmer ledger & credit limit alerts pending |
+| **Phase 6** | POS Counter Billing & Fast Thermal Receipts | 🟡 | **30%** | Zustand POS store & DB ready; Counter UI & Thermal print next |
+| **Phase 7** | Daily Shop Expenses | 🔴 | **10%** | DB schema ready; Expense categories & tracking pending |
+| **Phase 8** | Reports, Analytics & Roznamcha (Cash Book) | 🔴 | **10%** | Dashboard KPI cards ready; Detailed reports & export pending |
+| **Phase 9** | Vendor Self-Service Web Portal | 🔴 | **0%** | Planned after web admin is complete |
+| **Phase 10** | Mobile App (React Native Expo) | 🔴 | **0%** | Final phase for mobile billing & godown scanning |
 
 ---
 
-### ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-### 📌 PHASE 3: Inventory Management — Core (Week 3-5)
-### ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-#### 3.1 Product/Fertilizer Management
-- [ ] **Categories:** Urea, DAP, NPK, Pesticides, Seeds, etc.
-- [ ] **Product CRUD:** Name, SKU, brand, category, unit (kg/bag/litre)
-- [ ] Product images upload (Supabase Storage)
-- [ ] Barcode/QR code generation
-- [ ] Minimum stock level alerts
-- [ ] Product variants (sizes/weights)
-
-#### 3.2 Stock Management
-- [ ] Current stock dashboard
-- [ ] Stock in (Purchase entry)
-- [ ] Stock out (Sales entry)
-- [ ] Stock adjustment (damage, expiry, return)
-- [ ] Stock transfer between locations (if multiple)
-- [ ] Batch/Lot tracking with expiry dates
-- [ ] **Low stock alerts** (email/notification)
-
-#### 3.3 Warehouse/Godown Management
-- [ ] Multiple storage locations
-- [ ] Location-wise stock view
-- [ ] Stock movement history
+## 🗺️ Detailed Phase-by-Phase Functions Breakdown
 
 ---
 
-### ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-### 📌 PHASE 4: Purchase Management (Week 5-7)
-### ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+### 📌 PHASE 1: Foundation, Monorepo & Database Setup
+**Overall Status:** 🟢 **100% Complete**
 
-#### 4.1 Vendor/Supplier Management
-- [ ] Vendor CRUD (Name, company, phone, address, CNIC)
-- [ ] Vendor-wise product listing
-- [ ] Vendor payment history
-- [ ] Vendor ledger (Khata)
-- [ ] Outstanding balance tracking
-
-#### 4.2 Purchase Orders
-- [ ] Create purchase order
-- [ ] Purchase order approval workflow
-- [ ] Receive goods against PO
-- [ ] Partial receiving support
-- [ ] Purchase return management
-
-#### 4.3 Purchase Invoices
-- [ ] Invoice entry with line items
-- [ ] Tax calculation (if applicable)
-- [ ] Payment tracking (paid/partial/unpaid)
-- [ ] Invoice PDF generation
-- [ ] Payment methods (Cash, Bank, Cheque)
-
----
-
-### ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-### 📌 PHASE 5: Sales Management (Week 7-9)
-### ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-#### 5.1 Customer Management
-- [ ] Customer CRUD (Name, phone, address, CNIC)
-- [ ] Customer ledger (Khata)
-- [ ] Credit limit management
-- [ ] Customer payment history
-- [ ] Outstanding balance tracking
-
-#### 5.2 Sales / POS (Point of Sale)
-- [ ] Quick sale entry (POS style)
-- [ ] Product search (by name, SKU, barcode)
-- [ ] Cart system with quantity adjustment
-- [ ] Discount management (per item / overall)
-- [ ] Multiple payment methods
-- [ ] Invoice generation & print
-- [ ] Sale return / refund management
-
-#### 5.3 Sales Invoices
-- [ ] Professional invoice template
-- [ ] Thermal printer support (80mm)
-- [ ] A4 invoice print
-- [ ] Invoice email/WhatsApp share
-- [ ] Sales history with filters
+* 🟢 **1.1 Turborepo & pnpm Monorepo Setup**
+  * 🟢 Monorepo structure configured (`apps/web`, `apps/api`, `packages/shared`, `packages/ui`)
+  * 🟢 Shared TypeScript configuration (`tsconfig.json`) across all workspaces
+  * 🟢 Unified ESLint & Prettier code quality rules
+  * 🟢 Build pipeline (`pnpm build`) passing 100% across all packages and apps
+* 🟢 **1.2 Supabase Database Architecture**
+  * 🟢 Live Supabase cloud database connected (`https://zpjqeryfpbiyvdtqdckx.supabase.co`)
+  * 🟢 12 Relational Tables created with foreign keys and cascading rules:
+    * `profiles`, `categories`, `products`, `vendors`, `customers`, `purchases`, `purchase_items`, `sales`, `sale_items`, `payments`, `stock_movements`, `expenses`
+  * 🟢 Custom PostgreSQL Enum types (`user_role`, `payment_status`, `payment_method`, `stock_movement_type`, `ledger_entity_type`)
+  * 🟢 B-Tree indexes created on all foreign keys for high-speed queries
+  * 🟢 Row Level Security (RLS) policies configured
+  * 🟢 Automated `updated_at` timestamp triggers on all tables
+  * 🟢 Pre-seeded 10 essential Pakistani fertilizer categories (Urea, DAP, Potash, NPK, Micronutrients, Bio, Pesticides, Seeds)
+* 🟢 **1.3 Backend Foundation (NestJS)**
+  * 🟢 NestJS modular architecture with NodeNext ESM support
+  * 🟢 Global Supabase Module (Anon client + Service Role client)
+  * 🟢 Swagger OpenAPI Interactive Documentation at `/api/docs`
+  * 🟢 CORS security configuration & Global ValidationPipe with DTO validation
+  * 🟢 Health-check endpoint (`/api/v1/health`) with passing unit tests
 
 ---
 
-### ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-### 📌 PHASE 6: Financial Management (Week 9-11)
-### ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+### 🌐 SPECIAL FEATURE: Bilingual Urdu & English Localization (RTL)
+**Overall Status:** 🟢 **100% Complete**
 
-#### 6.1 Khata (Ledger) System 📒
-- [ ] Customer Khata (Udhar/Credit tracking)
-- [ ] Vendor Khata (Payable tracking)
-- [ ] Payment receive from customers
-- [ ] Payment send to vendors
-- [ ] Daily cash register
-- [ ] Cheque management & tracking
-
-#### 6.2 Expense Management
-- [ ] Daily expenses entry
-- [ ] Expense categories (Transport, Salary, Utility, etc.)
-- [ ] Monthly expense summary
-
-#### 6.3 Profit & Loss
-- [ ] Per-product profit tracking
-- [ ] Daily/Monthly/Yearly P&L
-- [ ] Cost price vs selling price analysis
-- [ ] Margin calculator
+* 🟢 **S.1 Desi Dukandari Dictionary (`translations.ts`)**
+  * 🟢 Comprehensive bilingual dictionary inside `@fertilizer/shared`
+  * 🟢 Traditional Pakistani terms: کھاتہ (Khata), میزان (Meezan), بقایا (Baqaya), نقد (Naqd), ادھار (Udhaar), بوری (Bori), پرچی (Parchi), چالان (Challan)
+* 🟢 **S.2 Language Context Engine (`language-context.tsx`)**
+  * 🟢 React `LanguageProvider` with `useLanguage()` hook
+  * 🟢 Automatic `dir="rtl"` for Urdu and `dir="ltr"` for English on `<html>`
+  * 🟢 Google Font `Noto Nastaliq Urdu` font styling & responsive line-heights
+  * 🟢 Persistent user preference saved in browser `localStorage` (Default: Urdu)
+* 🟢 **S.3 Interactive Language Toggle (`language-toggle.tsx`)**
+  * 🟢 1-Click `اردو | ENG` pill button in Topbar and Login card
+  * 🟢 Instant UI re-render without reloading the page
 
 ---
 
-### ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-### 📌 PHASE 7: Reports & Analytics Dashboard (Week 11-12)
-### ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+### 📌 PHASE 2: Authentication, Roles & Shop Profiles
+**Overall Status:** 🟢 **100% Complete**
 
-#### 7.1 Dashboard (Admin)
-- [ ] Today's sales summary
-- [ ] Revenue charts (daily/weekly/monthly)
-- [ ] Top selling products
-- [ ] Low stock alerts widget
-- [ ] Pending payments (receivable + payable)
-- [ ] Recent activity feed
-
-#### 7.2 Reports
-- [ ] **Sales Report** — Date-wise, product-wise, customer-wise
-- [ ] **Purchase Report** — Date-wise, vendor-wise
-- [ ] **Inventory Report** — Current stock, movement, valuation
-- [ ] **Customer Ledger Report** — Udhar/Credit details
-- [ ] **Vendor Ledger Report** — Payable details
-- [ ] **Profit/Loss Report** — Per product, overall
-- [ ] **Expense Report** — Category-wise, monthly
-- [ ] **Cash Flow Report** — Daily/Monthly
-- [ ] Export to **PDF / Excel / CSV**
-
----
-
-### ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-### 📌 PHASE 8: Vendor Portal (Week 12-13)
-### ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-#### 8.1 Vendor Web Portal
-- [ ] Vendor login & dashboard
-- [ ] View purchase orders received
-- [ ] Update order status (Accepted/Shipped/Delivered)
-- [ ] View payment status & history
-- [ ] Upload invoices & delivery challans
-- [ ] Product catalog management
-- [ ] Communication with admin
+* 🟢 **2.1 Backend Auth API (NestJS)**
+  * 🟢 `POST /api/v1/auth/register` — New shop & admin account creation
+  * 🟢 `POST /api/v1/auth/login` — Email & password login returning JWT access token
+  * 🟢 `GET /api/v1/auth/me` — Retrieve current logged-in user profile & shop data
+  * 🟢 `PUT /api/v1/auth/profile` — Update shop name, owner name, phone & address
+  * 🟢 `POST /api/v1/auth/refresh` — Refresh expired JWT tokens seamlessly
+  * 🟢 `JwtAuthGuard` — Supabase token verification guard protecting API endpoints
+  * 🟢 `RolesGuard` — Role-based access control protecting administrative actions
+* 🟢 **2.2 User Roles & Permissions (RBAC)**
+  * 🟢 Super Admin (Dukan Malik / Chachu) — Full system access & financial controls
+  * 🟢 Shop Manager (Munshi) — Stock management, purchases, customer ledger
+  * 🟢 Sales Staff (Counter Salesman) — POS billing, cash collection
+  * 🟢 Vendor (Supplier) — Product supply and purchase order view
+* 🟢 **2.3 Web Authentication & Dashboard Shell (Next.js)**
+  * 🟢 React `AuthProvider` with automatic token refresh & secure session management
+  * 🟢 Protected route guards (auto redirect unauthenticated users to `/login`)
+  * 🟢 Premium Login Screen (`/login`) with Pakistani agricultural theme
+  * 🟢 1-Click "Auto Fill Demo Admin" button for fast testing
+  * 🟢 Shop Registration Screen (`/register`)
+  * 🟢 Collapsible Navigation Sidebar with bilingual labels & icons
+  * 🟢 Header topbar with live search, notifications & user profile dropdown
+  * 🟢 Main Dashboard (`/dashboard`) with 4 live KPI overview cards:
+    * 🟢 Total Sales Today (آج کی کل فروخت)
+    * 🟢 Fertilizer Stock Bags (گودام میں کل بوریاں)
+    * 🟢 Zamindar Khata Udhaar (زمینداروں کے ذمے بقایا ادھار)
+    * 🟢 Cash in Hand / Galla (دکان کے گلے میں موجود نقد رقم)
 
 ---
 
-### ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-### 📌 PHASE 9: Mobile App — React Native (Week 14-18)
-### ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+### 📌 PHASE 3: Fertilizer Products & Inventory Management
+**Overall Status:** 🟢 **100% Complete**
 
-#### 9.1 Mobile App Features
-- [ ] Login with biometric support
-- [ ] Dashboard (Sales summary)
-- [ ] Quick POS / Sale entry
-- [ ] Product scanner (Barcode/QR)
-- [ ] Customer Khata view
-- [ ] Stock check
-- [ ] Notifications (low stock, payments due)
-- [ ] Offline mode (sync when online)
-
----
-
-### ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-### 📌 PHASE 10: Advanced Features (Week 18+)
-### ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-- [ ] **Multi-branch support** (multiple shops)
-- [ ] **SMS/WhatsApp notifications** (payment reminders)
-- [ ] **AI-powered insights** (demand prediction, seasonal trends)
-- [ ] **Government scheme integration** (subsidy tracking)
-- [ ] **Bulk import/export** (Excel product upload)
-- [ ] **Audit trail** (who did what, when)
-- [ ] **Backup & restore** system
-- [ ] **Dark mode** support
-- [ ] **Multi-language** (Urdu/English)
+* 🟢 **3.1 Database Foundation:**
+  * 🟢 `products` table schema with Urdu/English names, SKU, company, bag weight, cost, sale price
+  * 🟢 `categories` table schema with pre-seeded Pakistani fertilizer categories
+  * 🟢 Shared TypeScript models & interfaces in `@fertilizer/shared`
+* 🟢 **3.2 Backend Products API (NestJS):**
+  * 🟢 `ProductsModule` structure (`apps/api/src/products/`)
+  * 🟢 `POST /api/v1/products` — Create new product (Urea, DAP, seeds, spray)
+  * 🟢 `GET /api/v1/products` — List products with search, category filters & pagination
+  * 🟢 `GET /api/v1/products/:id` — Get single product details with current stock & audit history
+  * 🟢 `PUT /api/v1/products/:id` — Update product details, prices, alert threshold
+  * 🟢 `DELETE /api/v1/products/:id` — Soft-delete / deactivate product
+  * 🟢 `POST /api/v1/products/:id/adjust-stock` — Stock manual adjustment (damage, leakage, audit)
+  * 🟢 `GET /api/v1/products/:id/movements` — Stock audit trail (in/out history log)
+  * 🟢 `GET /api/v1/products/categories` — List active categories
+  * 🟢 `GET /api/v1/products/stats` — Inventory KPI stats (total bags, low stock alerts, valuation)
+* 🟢 **3.3 Web Products UI (Next.js - `/dashboard/products`):**
+  * 🟢 Products listing table with Urdu/English names & company tags (FFC, Engro, Fatima, Bayer)
+  * 🟢 Stock bag badges: In Stock (🟢 Green), Low Stock (🟡 Yellow), Out of Stock (🔴 Red)
+  * 🟢 4 KPI Summary Cards (Total Items, Total Units/Bags, Low Stock Alerts, Inventory Valuation)
+  * 🟢 Add Product Modal (Urdu/English names, Company, Unit weight, Cost, Sale price, Rack location)
+  * 🟢 Stock adjustment & damage modal for recording damaged or torn bags (پھٹی ہوئی بوری کا اندراج)
+  * 🟢 Low Stock filter pill & real-time search across SKU, company, and Urdu names
 
 ---
 
-## 🗄️ Database Schema (Core Tables)
+### 📌 PHASE 4: Vendors (Suppliers) & Purchases (Stock In)
+**Overall Status:** 🔴 **10% Pending**
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    SUPABASE SCHEMA                          │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  users                    profiles                          │
-│  ├── id (uuid, PK)        ├── id (uuid, PK, FK→users)     │
-│  ├── email                ├── full_name                     │
-│  ├── phone                ├── role (enum)                   │
-│  └── created_at           ├── avatar_url                    │
-│                           ├── cnic                          │
-│                           └── is_active                     │
-│                                                             │
-│  categories               products                          │
-│  ├── id (uuid, PK)        ├── id (uuid, PK)               │
-│  ├── name                 ├── name                          │
-│  ├── description          ├── sku                           │
-│  └── parent_id (self FK)  ├── category_id (FK)             │
-│                           ├── brand                         │
-│                           ├── unit (kg/bag/litre)           │
-│                           ├── cost_price                    │
-│                           ├── selling_price                 │
-│                           ├── min_stock_level               │
-│                           ├── image_url                     │
-│                           ├── barcode                       │
-│                           └── is_active                     │
-│                                                             │
-│  vendors                  customers                         │
-│  ├── id (uuid, PK)        ├── id (uuid, PK)               │
-│  ├── name                 ├── name                          │
-│  ├── company_name         ├── phone                         │
-│  ├── phone                ├── address                       │
-│  ├── address              ├── cnic                          │
-│  ├── cnic                 ├── credit_limit                  │
-│  └── balance              └── balance                       │
-│                                                             │
-│  purchases                purchase_items                    │
-│  ├── id (uuid, PK)        ├── id (uuid, PK)               │
-│  ├── vendor_id (FK)       ├── purchase_id (FK)             │
-│  ├── invoice_no           ├── product_id (FK)              │
-│  ├── total_amount         ├── quantity                      │
-│  ├── paid_amount          ├── unit_price                    │
-│  ├── status               ├── total_price                   │
-│  ├── payment_method       └── batch_no                      │
-│  └── date                                                   │
-│                                                             │
-│  sales                    sale_items                         │
-│  ├── id (uuid, PK)        ├── id (uuid, PK)               │
-│  ├── customer_id (FK)     ├── sale_id (FK)                 │
-│  ├── invoice_no           ├── product_id (FK)              │
-│  ├── total_amount         ├── quantity                      │
-│  ├── discount             ├── unit_price                    │
-│  ├── paid_amount          ├── discount                      │
-│  ├── payment_method       └── total_price                   │
-│  └── date                                                   │
-│                                                             │
-│  payments                 stock_movements                   │
-│  ├── id (uuid, PK)        ├── id (uuid, PK)               │
-│  ├── type (in/out)        ├── product_id (FK)              │
-│  ├── reference_id         ├── type (in/out/adjust)         │
-│  ├── reference_type       ├── quantity                      │
-│  ├── amount               ├── reference_id                  │
-│  ├── payment_method       ├── reference_type                │
-│  └── date                 ├── notes                         │
-│                           └── date                          │
-│                                                             │
-│  expenses                 notifications                     │
-│  ├── id (uuid, PK)        ├── id (uuid, PK)               │
-│  ├── category             ├── user_id (FK)                 │
-│  ├── amount               ├── title                         │
-│  ├── description          ├── message                       │
-│  ├── date                 ├── is_read                       │
-│  └── created_by (FK)      └── created_at                    │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+* 🟢 **4.1 Database Foundation:**
+  * 🟢 `vendors`, `purchases`, `purchase_items` tables ready in database
+  * 🟢 Shared TypeScript types in `@fertilizer/shared`
+* 🔴 **4.2 Backend Vendors & Purchases API (NestJS):**
+  * 🔴 `POST /api/v1/vendors` — Add new supplier/company (Engro, FFC, Fatima, Bayer, local dealer)
+  * 🔴 `GET /api/v1/vendors` — List all vendors with remaining balance
+  * 🔴 `PUT /api/v1/vendors/:id` — Update vendor details & contact info
+  * 🔴 `GET /api/v1/vendors/:id/ledger` — Vendor ledger showing purchase bills & payments
+  * 🔴 `POST /api/v1/purchases` — Record new purchase invoice (automatic stock increment)
+  * 🔴 `GET /api/v1/purchases` — List purchase invoices with date & vendor filter
+  * 🔴 `POST /api/v1/purchases/:id/payments` — Record payment to vendor (Cash, Bank, Cheque)
+* 🔴 **4.3 Web Vendors & Purchases UI (Next.js):**
+  * 🔴 Vendors List Screen (`/dashboard/vendors`) with contact numbers & payable balances
+  * 🔴 Add/Edit Vendor modal
+  * 🔴 Vendor Ledger Screen (سپلائر کھاتہ) showing bill history & payments sent
+  * 🔴 Purchase Entry Screen (`/dashboard/purchases/new`) for recording incoming trucks
+  * 🔴 Printable Purchase Invoice & receiving challan
 
 ---
 
-## 📅 Timeline Summary
+### 📌 PHASE 5: Customers (Farmers/Zamindar) & Khata Ledger
+**Overall Status:** 🔴 **10% Pending**
 
-| Phase | Description | Duration | Priority |
-|-------|------------|----------|----------|
-| Phase 1 | Foundation & Setup | Week 1-2 | 🔴 Critical |
-| Phase 2 | Auth & User Management | Week 2-3 | 🔴 Critical |
-| Phase 3 | Inventory Management | Week 3-5 | 🔴 Critical |
-| Phase 4 | Purchase Management | Week 5-7 | 🔴 Critical |
-| Phase 5 | Sales / POS | Week 7-9 | 🔴 Critical |
-| Phase 6 | Financial / Khata | Week 9-11 | 🟡 High |
-| Phase 7 | Reports & Dashboard | Week 11-12 | 🟡 High |
-| Phase 8 | Vendor Portal | Week 12-13 | 🟡 High |
-| Phase 9 | Mobile App (React Native) | Week 14-18 | 🟢 Medium |
-| Phase 10 | Advanced Features | Week 18+ | 🔵 Low |
-
-> [!IMPORTANT]
-> **Total Estimated Time:** ~18-20 weeks for full system  
-> **MVP (Minimum Viable Product):** Phase 1-5 = ~9 weeks  
-> **Web Complete:** Phase 1-8 = ~13 weeks  
-
----
-
-## 🚀 Immediate Next Steps
-
-1. **Setup monorepo** with Turborepo
-2. **Create Supabase project** & design database schema
-3. **Initialize Next.js** app (Admin panel)
-4. **Initialize Nest.js** API server
-5. **Connect Supabase** to backend
-6. **Build Auth system** (Login/Register)
+* 🟢 **5.1 Database Foundation:**
+  * 🟢 `customers` & `payments` tables ready in database
+  * 🟢 Shared TypeScript types in `@fertilizer/shared`
+* 🔴 **5.2 Backend Customers & Khata API (NestJS):**
+  * 🔴 `POST /api/v1/customers` — Register new farmer/zamindar (Name, Chak/Village, Phone, CNIC)
+  * 🔴 `GET /api/v1/customers` — Search & list customers by name, phone or village
+  * 🔴 `PUT /api/v1/customers/:id` — Update customer information & credit limit
+  * 🔴 `GET /api/v1/customers/:id/ledger` — Full Khata Ledger statement
+  * 🔴 `POST /api/v1/customers/:id/payments` — Record farmer payment received (وصولی اندراج)
+* 🔴 **5.3 Web Customers & Khata UI (Next.js):**
+  * 🔴 Customer Directory Screen (`/dashboard/customers`) with total outstanding balance
+  * 🔴 Add/Edit Customer modal with Village/Chak and Credit Limit
+  * 🔴 Farmer Khata Ledger Screen (`/dashboard/customers/:id/ledger`):
+    * 🔴 Previous Balance (سابقہ بقایا)
+    * 🔴 New Purchases / Debits (نئی خریداری)
+    * 🔴 Cash Received / Credits (وصولی)
+    * 🔴 Current Net Balance (موجودہ بقایا)
+  * 🔴 Payment collection receipt form (Cash, Bank, Cheque)
+  * 🔴 Credit limit safety warning (Alerts counter staff if farmer exceeds credit limit)
+  * 🔴 Printable Urdu Khata Statement for Zamindar (کھاتہ پرچی)
+  * 🔴 WhatsApp Payment Reminder Generator (Sends outstanding bill reminder on WhatsApp)
 
 ---
 
-> [!TIP]
-> **Suggestion:** Hum Phase 1 se start karein? Main monorepo setup, Supabase schema, aur Next.js + Nest.js ka initial setup kar deta hoon. Bas aap "Start" bolo! 🚀
+### 📌 PHASE 6: POS Counter Billing & Fast Thermal Receipts
+**Overall Status:** 🟡 **30% In Progress**
+
+* 🟢 **6.1 Database & State Management:**
+  * 🟢 `sales` & `sale_items` tables ready in database
+  * 🟢 Zustand POS Cart Store (`pos-store.ts`) with quantity, prices, discount & offline persistence
+* 🔴 **6.2 Backend Sales API (NestJS):**
+  * 🔴 `POST /api/v1/sales` — Checkout sale transaction:
+    * 🔴 Atomic stock deduction from products
+    * 🔴 Automatic Khata update if sold on Udhaar
+    * 🔴 Cash drawer balance increment if paid by Cash
+  * 🔴 `GET /api/v1/sales` — List daily sales with filters
+  * 🔴 `GET /api/v1/sales/:id` — Single sale invoice breakdown
+  * 🔴 `POST /api/v1/sales/:id/return` — Sale return / item exchange handling
+* 🔴 **6.3 Web POS Counter UI (Next.js - `/dashboard/pos`):**
+  * 🔴 Fast product search grid with bag badges, prices & instant add-to-cart
+  * 🔴 Customer selector (Walk-in Cash Customer vs Registered Zamindar)
+  * 🔴 Boriyan quick quantity adjuster (+1, +5, +10 boriyan)
+  * 🔴 Custom price override per bag (دکاندار کے لیے ریٹ تبدیل کرنے کا آپشن)
+  * 🔴 Payment methods:
+    * 🔴 Full Cash (نقد)
+    * 🔴 Full Khata/Credit (ادھار)
+    * 🔴 Partial Cash + Partial Udhaar (جزوی نقد + جزوی ادھار)
+* 🔴 **6.4 Fast Thermal Printer Receipt:**
+  * 🔴 80mm & 58mm Thermal printer receipt layout
+  * 🔴 Urdu/English receipt with Shop name, Customer name, Items, Amount & Khata balance
+  * 🔴 Auto-print on sale confirmation
+
+---
+
+### 📌 PHASE 7: Daily Shop Expenses
+**Overall Status:** 🔴 **10% Pending**
+
+* 🟢 **7.1 Database Foundation:**
+  * 🟢 `expenses` table ready in database
+  * 🟢 Shared TypeScript types in `@fertilizer/shared`
+* 🔴 **7.2 Backend Expenses API (NestJS):**
+  * 🔴 `POST /api/v1/expenses` — Record daily expense
+  * 🔴 `GET /api/v1/expenses` — List expenses with category & date range filters
+  * 🔴 `DELETE /api/v1/expenses/:id` — Delete / void expense entry
+* 🔴 **7.3 Web Expenses UI (Next.js - `/dashboard/expenses`):**
+  * 🔴 Expense entry form with standard agri-shop categories:
+    * 🔴 Labor / Palledari (مزدوری / پلے داری — Loading & unloading charges per bag)
+    * 🔴 Freight / Transport (کرایہ مال — Truck / trolley rent)
+    * 🔴 Shop & Warehouse rent (دکان / گودام کا کرایہ)
+    * 🔴 Electricity & Utility bills (بجلی کا بل)
+    * 🔴 Tea, Food & Daily Miscellaneous (چائے پانی و متفرق اخراجات)
+  * 🔴 Daily cash drawer deduction (for exact net profit calculation)
+  * 🔴 Monthly expense category comparison chart
+
+---
+
+### 📌 PHASE 8: Reports, Analytics & Roznamcha (Cash Book)
+**Overall Status:** 🔴 **10% Pending**
+
+* 🟢 **8.1 Dashboard Live KPI Cards:**
+  * 🟢 Sales, Stock Bags, Khata Udhaar, Cash in Hand overview cards
+* 🔴 **8.2 Comprehensive Financial Reports:**
+  * 🔴 Daily Cash Book / Roznamcha (روزنامچہ — Total Cash In, Total Cash Out, Net Cash in Galla)
+  * 🔴 Product-wise Profit & Loss Report (Profit margin per Urea, DAP bag)
+  * 🔴 Godown Stock Valuation Report (Total asset value of inventory)
+  * 🔴 Zamindar Udhaar Recovery Aging Report (30 days, 60 days, 90+ days overdue)
+  * 🔴 Vendor Payable Summary (Outstanding amounts to companies)
+* 🔴 **8.3 Export & Printing:**
+  * 🔴 Export to Excel (.xlsx) for all reports
+  * 🔴 Printable PDF reports with shop header
+
+---
+
+### 📌 PHASE 9: Vendor Self-Service Web Portal
+**Overall Status:** 🔴 **0% Pending**
+
+* 🔴 **9.1 Vendor Portal Web Application:**
+  * 🔴 Vendor login interface & dedicated portal view
+  * 🔴 Purchase order dispatch tracking
+  * 🔴 Payment receipts & digital ledger statement
+  * 🔴 Product supply catalog & rate update requests
+
+---
+
+### 📌 PHASE 10: Mobile App (React Native Expo)
+**Overall Status:** 🔴 **0% Pending**
+
+* 🔴 **10.1 React Native Mobile App:**
+  * 🔴 Cross-platform app for Android and iOS
+  * 🔴 Mobile POS billing for counter salesman
+  * 🔴 Camera Barcode/QR Scanner for rapid godown bag counting
+  * 🔴 Zamindar Khata quick look up on mobile phone
+  * 🔴 Offline sync mode (for rural areas without active internet)
+
+---
+
+## 🎯 Current Sprint & Next Steps
+
+👉 **Executing PHASE 3 (Fertilizer Products & Inventory Management):**
+1. **NestJS Products Module:** `products.service.ts` & `products.controller.ts` (List, Create, Update, Delete, Stock Alert endpoints).
+2. **Next.js Products Management UI ([`/dashboard/products`](file:///c:/Users/Rizwan%20Ahmad/Desktop/myproject/FetilizerInvetory/apps/web/app/dashboard/products)):** Table with category filters (Urea, DAP, Pesticides), live stock bag badges (In Stock, Low Stock, Out of Stock), and "Add New Product" modal.
