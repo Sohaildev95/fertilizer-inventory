@@ -46,11 +46,27 @@ const navItems: NavItem[] = [
   { name: 'Reports & Profit', urduName: 'نفع و نقصان رپورٹس', href: '/dashboard/reports', icon: FileBarChart2 },
 ];
 
+const getRoleDetails = (role?: string) => {
+  switch (role) {
+    case 'super_admin':
+      return { label: 'Super Admin', urdu: 'دکان مالک (چاچو)', icon: '👑', color: '#10b981', bg: 'rgba(16, 185, 129, 0.12)', border: '#10b981' };
+    case 'shop_manager':
+      return { label: 'Shop Manager', urdu: 'منشی / انوینٹری مینیجر', icon: '📋', color: '#0284c7', bg: 'rgba(2, 132, 199, 0.12)', border: '#0284c7' };
+    case 'sales_staff':
+      return { label: 'Sales Counter', urdu: 'کاؤنٹر سیلزمین', icon: '🛒', color: '#f59e0b', bg: 'rgba(245, 158, 11, 0.12)', border: '#f59e0b' };
+    case 'vendor':
+      return { label: 'Vendor Portal', urdu: 'کھاد کمپنی سپلائر', icon: '🚚', color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.12)', border: '#8b5cf6' };
+    default:
+      return { label: 'Super Admin', urdu: 'دکان مالک (چاچو)', icon: '👑', color: '#10b981', bg: 'rgba(16, 185, 129, 0.12)', border: '#10b981' };
+  }
+};
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, profile, logout } = useAuth();
   const { isUrdu, t } = useLanguage();
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const roleInfo = getRoleDetails(profile?.role);
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
@@ -62,127 +78,145 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           color: '#ffffff',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'space-between',
           borderInlineEnd: '1px solid rgba(255, 255, 255, 0.1)',
           position: 'sticky',
           top: 0,
           height: '100vh',
+          maxHeight: '100vh',
           zIndex: 40,
           flexShrink: 0,
+          overflow: 'hidden',
         }}
       >
-        {/* Top Brand */}
-        <div>
+        {/* Top Brand (Pinned) */}
+        <div
+          style={{
+            flexShrink: 0,
+            padding: '20px 18px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+          }}
+        >
           <div
             style={{
-              padding: '24px 20px',
+              width: '40px',
+              height: '40px',
+              borderRadius: '12px',
+              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
               display: 'flex',
               alignItems: 'center',
-              gap: '12px',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
+              justifyContent: 'center',
+              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)',
+              flexShrink: 0,
             }}
           >
-            <div
+            <Sprout size={22} color="#ffffff" />
+          </div>
+          <div style={{ overflow: 'hidden' }}>
+            <h2
               style={{
-                width: '42px',
-                height: '42px',
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)',
+                fontSize: '15px',
+                fontWeight: '800',
+                color: '#ffffff',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
+                overflow: 'hidden',
               }}
             >
-              <Sprout size={24} color="#ffffff" />
-            </div>
-            <div style={{ overflow: 'hidden' }}>
-              <h2
-                style={{
-                  fontSize: '16px',
-                  fontWeight: '800',
-                  color: '#ffffff',
-                  whiteSpace: 'nowrap',
-                  textOverflow: 'ellipsis',
-                  overflow: 'hidden',
-                }}
-              >
-                {profile?.shop_name || 'Kissan Fertilizer'}
-              </h2>
-              <p style={{ fontSize: '12px', color: '#6ee7b7' }}>انوینٹری اور سیلز سسٹم</p>
-            </div>
+              {profile?.shop_name || 'Kissan Fertilizer'}
+            </h2>
+            <p style={{ fontSize: '11px', color: '#6ee7b7' }}>انوینٹری اور سیلز سسٹم</p>
           </div>
-
-          {/* Navigation Items */}
-          <nav style={{ padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = pathname === item.href;
-
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '11px 14px',
-                    borderRadius: '10px',
-                    textDecoration: 'none',
-                    fontSize: '14px',
-                    fontWeight: isActive ? '700' : '500',
-                    color: isActive ? '#ffffff' : '#cbd5e1',
-                    background: isActive ? 'rgba(16, 185, 129, 0.2)' : 'transparent',
-                    border: isActive ? '1px solid rgba(52, 211, 153, 0.4)' : '1px solid transparent',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <Icon size={19} color={isActive ? '#34d399' : '#94a3b8'} />
-                    <span style={{ fontFamily: isUrdu ? 'Noto Nastaliq Urdu, sans-serif' : 'inherit' }}>
-                      {isUrdu ? item.urduName : item.name}
-                    </span>
-                  </div>
-
-                  {item.badge && (
-                    <span
-                      style={{
-                        padding: '2px 8px',
-                        fontSize: '10px',
-                        fontWeight: '800',
-                        borderRadius: '999px',
-                        background: '#f59e0b',
-                        color: '#78350f',
-                      }}
-                    >
-                      {item.badge}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
-          </nav>
         </div>
 
-        {/* Bottom User Card */}
-        <div style={{ padding: '16px', borderTop: '1px solid rgba(255, 255, 255, 0.08)' }}>
+        {/* Navigation Items (Scrollable inner area) */}
+        <nav
+          className="custom-scrollbar"
+          style={{
+            flex: 1,
+            overflowY: 'auto',
+            padding: '12px 10px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '3px',
+          }}
+        >
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = pathname === item.href;
+
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '9px 12px',
+                  borderRadius: '10px',
+                  textDecoration: 'none',
+                  fontSize: '13.5px',
+                  fontWeight: isActive ? '700' : '500',
+                  color: isActive ? '#ffffff' : '#cbd5e1',
+                  background: isActive ? 'rgba(16, 185, 129, 0.2)' : 'transparent',
+                  border: isActive ? '1px solid rgba(52, 211, 153, 0.4)' : '1px solid transparent',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Icon size={18} color={isActive ? '#34d399' : '#94a3b8'} />
+                  <span style={{ fontFamily: isUrdu ? 'Noto Nastaliq Urdu, sans-serif' : 'inherit' }}>
+                    {isUrdu ? item.urduName : item.name}
+                  </span>
+                </div>
+
+                {item.badge && (
+                  <span
+                    style={{
+                      padding: '2px 7px',
+                      fontSize: '9.5px',
+                      fontWeight: '800',
+                      borderRadius: '999px',
+                      background: '#f59e0b',
+                      color: '#78350f',
+                    }}
+                  >
+                    {item.badge}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* Bottom User Card (Pinned at bottom, always fully visible) */}
+        <div
+          style={{
+            flexShrink: 0,
+            padding: '12px 14px',
+            borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+            backgroundColor: 'rgba(5, 60, 45, 0.9)',
+          }}
+        >
           <div
             style={{
-              padding: '12px',
-              borderRadius: '12px',
-              background: 'rgba(255, 255, 255, 0.05)',
+              padding: '10px 12px',
+              borderRadius: '10px',
+              background: 'rgba(255, 255, 255, 0.06)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              marginBottom: '10px',
+              marginBottom: '8px',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '9px', overflow: 'hidden' }}>
               <div
                 style={{
-                  width: '36px',
-                  height: '36px',
+                  width: '34px',
+                  height: '34px',
                   borderRadius: '50%',
                   background: '#059669',
                   display: 'flex',
@@ -190,7 +224,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   justifyContent: 'center',
                   fontWeight: '700',
                   color: '#ffffff',
-                  fontSize: '14px',
+                  fontSize: '13px',
                   flexShrink: 0,
                 }}
               >
@@ -199,7 +233,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <div style={{ overflow: 'hidden' }}>
                 <p
                   style={{
-                    fontSize: '13px',
+                    fontSize: '12.5px',
                     fontWeight: '700',
                     color: '#ffffff',
                     whiteSpace: 'nowrap',
@@ -209,10 +243,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 >
                   {profile?.full_name || 'Admin'}
                 </p>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
-                  <Shield size={11} color="#34d399" />
-                  <span style={{ fontSize: '11px', color: '#a7f3d0', textTransform: 'capitalize' }}>
-                    {profile?.role?.replace('_', ' ') || 'Super Admin'}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '1px' }}>
+                  <span style={{ fontSize: '11px' }}>{roleInfo.icon}</span>
+                  <span style={{ fontSize: '10.5px', color: '#a7f3d0', fontWeight: '600' }}>
+                    {isUrdu ? roleInfo.urdu : roleInfo.label}
                   </span>
                 </div>
               </div>
@@ -226,19 +260,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              gap: '8px',
-              padding: '9px',
+              gap: '7px',
+              padding: '8px',
               borderRadius: '8px',
               background: 'rgba(239, 68, 68, 0.15)',
               border: '1px solid rgba(239, 68, 68, 0.3)',
               color: '#fca5a5',
-              fontSize: '13px',
+              fontSize: '12.5px',
               fontWeight: '600',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
             }}
           >
-            <LogOut size={16} />
+            <LogOut size={15} />
             <span>{isUrdu ? 'لاگ آؤٹ' : 'Sign Out'}</span>
           </button>
         </div>
@@ -291,6 +325,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
           {/* Quick Actions & Language Toggle */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            {/* Active User Role Badge */}
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '5px 12px',
+                borderRadius: '999px',
+                backgroundColor: roleInfo.bg,
+                border: `1px solid ${roleInfo.border}40`,
+                fontSize: '12px',
+                fontWeight: '700',
+                color: roleInfo.color,
+              }}
+            >
+              <span>{roleInfo.icon}</span>
+              <span className={isUrdu ? 'font-urdu' : ''}>
+                {isUrdu ? roleInfo.urdu : roleInfo.label}
+              </span>
+            </div>
+
             {/* Language Switcher */}
             <LanguageToggle />
 

@@ -48,48 +48,49 @@ export default function RegisterPage() {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        height: '100vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         background: 'linear-gradient(135deg, #064e3b 0%, #0f172a 100%)',
-        padding: '40px 20px',
+        padding: '10px',
         color: '#ffffff',
+        overflow: 'hidden',
       }}
     >
       <div
         className="fade-in"
         style={{
           width: '100%',
-          maxWidth: '560px',
+          maxWidth: '520px',
           background: '#ffffff',
-          borderRadius: '24px',
-          padding: '40px',
+          borderRadius: '16px',
+          padding: '16px 24px',
           boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)',
           color: '#0f172a',
         }}
       >
         {/* Header */}
-        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '12px' }}>
           <div
             style={{
-              width: '52px',
-              height: '52px',
-              borderRadius: '16px',
+              width: '44px',
+              height: '44px',
+              borderRadius: '12px',
               background: 'linear-gradient(135deg, #10b981 0%, #047857 100%)',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
               boxShadow: '0 8px 20px rgba(16, 185, 129, 0.35)',
-              marginBottom: '16px',
+              marginBottom: '12px',
             }}
           >
-            <Sprout size={30} color="#ffffff" />
+            <Sprout size={20} color="#ffffff" />
           </div>
-          <h2 style={{ fontSize: '26px', fontWeight: '800', letterSpacing: '-0.5px', marginBottom: '6px' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: '800', letterSpacing: '-0.5px', marginBottom: '2px' }}>
             Nayi Dukan / Admin Register Karein
           </h2>
-          <p style={{ fontSize: '14px', color: '#64748b' }}>
+          <p style={{ fontSize: '12px', color: '#64748b' }}>
             Fertilizer Inventory System mein apni dukan setup karein
           </p>
         </div>
@@ -100,23 +101,23 @@ export default function RegisterPage() {
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '10px',
-              padding: '12px 14px',
+              gap: '8px',
+              padding: '10px 12px',
               borderRadius: '8px',
               background: '#fef2f2',
               border: '1px solid #fecaca',
               color: '#991b1b',
-              fontSize: '13px',
-              marginBottom: '20px',
+              fontSize: '12px',
+              marginBottom: '16px',
             }}
           >
-            <AlertCircle size={18} style={{ flexShrink: 0 }} />
+            <AlertCircle size={16} style={{ flexShrink: 0 }} />
             <span>{error}</span>
           </div>
         )}
 
         <form onSubmit={handleSubmit}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
             {/* Full Name */}
             <div className="form-group">
               <label className="form-label" htmlFor="fullname-input">
@@ -166,7 +167,7 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
             {/* Email */}
             <div className="form-group">
               <label className="form-label" htmlFor="reg-email-input">
@@ -215,7 +216,7 @@ export default function RegisterPage() {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
             {/* Password */}
             <div className="form-group">
               <label className="form-label" htmlFor="reg-pass-input">
@@ -269,7 +270,7 @@ export default function RegisterPage() {
           </div>
 
           {/* Address */}
-          <div className="form-group">
+          <div className="form-group" style={{ marginBottom: '12px' }}>
             <label className="form-label" htmlFor="address-input">
               <span>Dukan / Godown Ka Pata (Address & City)</span>
             </label>
@@ -296,7 +297,7 @@ export default function RegisterPage() {
             type="submit"
             disabled={loading}
             className="btn btn-primary"
-            style={{ width: '100%', padding: '13px', fontSize: '15px', marginTop: '12px' }}
+            style={{ width: '100%', padding: '10px', fontSize: '13px' }}
           >
             {loading ? (
               <span>Account Banaya Ja Raha Hai...</span>
@@ -309,7 +310,7 @@ export default function RegisterPage() {
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', fontSize: '13px', color: '#64748b', marginTop: '24px' }}>
+        <p style={{ textAlign: 'center', fontSize: '12px', color: '#64748b', marginTop: '12px' }}>
           Pehle se account mojood hai?{' '}
           <Link href="/login" style={{ color: '#059669', fontWeight: '700', textDecoration: 'none' }}>
             Yahan Login Karein

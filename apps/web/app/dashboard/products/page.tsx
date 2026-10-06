@@ -3,6 +3,21 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../../../lib/language-context';
 import { apiRequest } from '../../../lib/api-client';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../../components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '../../../components/ui/dialog';
 
 interface Category {
   id: string;
@@ -163,6 +178,33 @@ const INITIAL_FALLBACK_PRODUCTS: Product[] = [
     is_active: true,
   },
 ];
+
+const getCompanyColor = (companyName: string) => {
+  const name = companyName.toLowerCase();
+  if (name.includes('engro')) return 'bg-orange-50 text-orange-700 border-orange-200';
+  if (name.includes('fauji') || name.includes('ffc')) return 'bg-green-50 text-green-700 border-green-200';
+  if (name.includes('fatima') || name.includes('sarsabz')) return 'bg-lime-50 text-lime-700 border-lime-200';
+  if (name.includes('bayer')) return 'bg-blue-50 text-blue-700 border-blue-200';
+  if (name.includes('syngenta')) return 'bg-cyan-50 text-cyan-700 border-cyan-200';
+  if (name.includes('fmc')) return 'bg-red-50 text-red-700 border-red-200';
+  if (name.includes('ici')) return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+  if (name.includes('pioneer')) return 'bg-amber-50 text-amber-700 border-amber-200';
+  
+  const colors = [
+    'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200',
+    'bg-purple-50 text-purple-700 border-purple-200',
+    'bg-pink-50 text-pink-700 border-pink-200',
+    'bg-rose-50 text-rose-700 border-rose-200',
+    'bg-teal-50 text-teal-700 border-teal-200',
+    'bg-emerald-50 text-emerald-700 border-emerald-200',
+    'bg-sky-50 text-sky-700 border-sky-200',
+  ];
+  let hash = 0;
+  for (let i = 0; i < companyName.length; i++) {
+    hash = companyName.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return colors[Math.abs(hash) % colors.length];
+};
 
 export default function ProductsPage() {
   const { isUrdu } = useLanguage();
@@ -467,34 +509,34 @@ export default function ProductsPage() {
       {/* 4 Summary KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Total Products */}
-        <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-5 shadow-lg relative overflow-hidden group hover:border-emerald-500/40 transition">
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm relative overflow-hidden group hover:shadow-md hover:border-emerald-300 transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
               {isUrdu ? 'کل آئٹمز' : 'Total Items'}
             </span>
-            <span className="text-xl p-2 bg-emerald-500/10 text-emerald-400 rounded-xl">📦</span>
+            <span className="text-xl p-2 bg-slate-50 text-slate-600 rounded-xl">📦</span>
           </div>
           <div className="mt-3">
-            <span className="text-3xl font-extrabold text-white">{stats.totalProducts}</span>
-            <span className="text-xs text-slate-400 ml-2">
+            <span className="text-3xl font-extrabold text-slate-800">{stats.totalProducts}</span>
+            <span className="text-xs text-slate-500 ml-2">
               {isUrdu ? 'مختلف پروڈکٹس' : 'active SKUs'}
             </span>
           </div>
         </div>
 
         {/* Card 2: Total Bags in Godown */}
-        <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-5 shadow-lg relative overflow-hidden group hover:border-teal-500/40 transition">
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm relative overflow-hidden group hover:shadow-md hover:border-teal-300 transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
               {isUrdu ? 'گودام میں کل بوریاں / بوتلیں' : 'Total Units in Stock'}
             </span>
-            <span className="text-xl p-2 bg-teal-500/10 text-teal-400 rounded-xl">🌾</span>
+            <span className="text-xl p-2 bg-teal-50 text-teal-600 rounded-xl">🌾</span>
           </div>
           <div className="mt-3">
-            <span className="text-3xl font-extrabold text-teal-400">
+            <span className="text-3xl font-extrabold text-teal-600">
               {stats.totalBags.toLocaleString()}
             </span>
-            <span className="text-xs text-slate-400 ml-2">
+            <span className="text-xs text-slate-500 ml-2">
               {isUrdu ? 'بوریاں / پیکنگ' : 'bags & bottles'}
             </span>
           </div>
@@ -503,23 +545,33 @@ export default function ProductsPage() {
         {/* Card 3: Low Stock Alerts */}
         <div
           onClick={() => setShowOnlyLowStock(!showOnlyLowStock)}
-          className={`cursor-pointer rounded-2xl p-5 shadow-lg relative overflow-hidden border transition ${
+          className={`cursor-pointer rounded-2xl p-5 relative overflow-hidden transition ${
             stats.lowStockCount > 0
-              ? 'bg-amber-950/30 border-amber-500/40 hover:border-amber-400'
-              : 'bg-slate-900/80 border-slate-800/80'
+              ? 'bg-red-50 border border-red-200 hover:border-red-300 shadow-sm hover:shadow-md'
+              : 'bg-white border border-slate-200 hover:border-slate-300 shadow-sm hover:shadow-md'
           }`}
         >
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-amber-400 uppercase tracking-wider">
+            <span
+              className={`text-xs font-bold uppercase tracking-wider ${stats.lowStockCount > 0 ? 'text-red-600' : 'text-slate-500'}`}
+            >
               {isUrdu ? 'کم اسٹاک کی وارننگ' : 'Low Stock Alerts'}
             </span>
-            <span className="text-xl p-2 bg-amber-500/20 text-amber-400 rounded-xl animate-pulse">
+            <span
+              className={`text-xl p-2 rounded-xl ${stats.lowStockCount > 0 ? 'bg-red-100 text-red-600 animate-pulse' : 'bg-slate-50 text-slate-400'}`}
+            >
               ⚠️
             </span>
           </div>
           <div className="mt-3 flex items-baseline justify-between">
-            <span className="text-3xl font-extrabold text-amber-400">{stats.lowStockCount}</span>
-            <span className="text-xs underline text-amber-300 font-medium">
+            <span
+              className={`text-3xl font-extrabold ${stats.lowStockCount > 0 ? 'text-red-600' : 'text-slate-800'}`}
+            >
+              {stats.lowStockCount}
+            </span>
+            <span
+              className={`text-xs underline font-semibold ${stats.lowStockCount > 0 ? 'text-red-500 hover:text-red-700' : 'text-slate-500'}`}
+            >
               {showOnlyLowStock
                 ? isUrdu
                   ? 'سب دکھائیں'
@@ -532,20 +584,20 @@ export default function ProductsPage() {
         </div>
 
         {/* Card 4: Inventory Asset Value */}
-        <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl p-5 shadow-lg relative overflow-hidden group hover:border-emerald-500/40 transition">
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm relative overflow-hidden group hover:shadow-md hover:border-emerald-300 transition">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
               {isUrdu ? 'اسٹاک کی کل خرید قیمت' : 'Stock Asset Valuation'}
             </span>
-            <span className="text-xl p-2 bg-emerald-500/10 text-emerald-400 rounded-xl">💰</span>
+            <span className="text-xl p-2 bg-emerald-50 text-emerald-600 rounded-xl">💰</span>
           </div>
           <div className="mt-3">
-            <span className="text-2xl font-extrabold text-emerald-400">
+            <span className="text-2xl font-extrabold text-emerald-600">
               Rs. {stats.assetValue.toLocaleString()}
             </span>
-            <div className="text-xs text-slate-400 mt-1">
+            <div className="text-xs text-slate-500 mt-1 font-medium">
               {isUrdu ? 'متوقع منافع: ' : 'Expected profit: '}
-              <span className="text-emerald-400 font-semibold">
+              <span className="text-emerald-600 font-bold">
                 Rs. {stats.potentialProfit.toLocaleString()}
               </span>
             </div>
@@ -554,7 +606,7 @@ export default function ProductsPage() {
       </div>
 
       {/* Filters & Search Control Bar */}
-      <div className="bg-slate-900/90 border border-slate-800/90 rounded-2xl p-4 shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Search Input */}
         <div className="relative w-full md:w-80">
           <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 pointer-events-none">
@@ -569,41 +621,42 @@ export default function ProductsPage() {
                 ? 'نام، کمپنی، یا SKU تلاش کریں...'
                 : 'Search product, company, SKU, rack...'
             }
-            className="w-full pl-9 pr-4 py-2 bg-slate-800/80 border border-slate-700/80 rounded-xl text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-800 placeholder-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
           />
         </div>
 
         {/* Filter Dropdowns & Low Stock Pill */}
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
           {/* Company Filter */}
-          <select
-            value={selectedCompany}
-            onChange={(e) => setSelectedCompany(e.target.value)}
-            className="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-xl px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-          >
-            <option value="all">{isUrdu ? 'تمام کمپنیاں (All Companies)' : 'All Companies'}</option>
-            {companiesList
-              .filter((c) => c !== 'all')
-              .map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-          </select>
+          <Select value={selectedCompany} onValueChange={setSelectedCompany}>
+            <SelectTrigger className="w-[200px] border-slate-200 text-slate-700 bg-white">
+              <SelectValue placeholder={isUrdu ? 'تمام کمپنیاں (All Companies)' : 'All Companies'} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">{isUrdu ? 'تمام کمپنیاں (All Companies)' : 'All Companies'}</SelectItem>
+              {companiesList
+                .filter((c) => c !== 'all')
+                .map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+            </SelectContent>
+          </Select>
 
           {/* Low Stock Toggle Button */}
           <button
             onClick={() => setShowOnlyLowStock(!showOnlyLowStock)}
             className={`px-3.5 py-2 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition ${
               showOnlyLowStock
-                ? 'bg-amber-500 text-slate-950 shadow-md font-bold'
-                : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700'
+                ? 'bg-amber-100 text-amber-900 shadow-sm border border-amber-200'
+                : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
             }`}
           >
             <span>⚠️</span>
             <span>{isUrdu ? 'صرف کم اسٹاک' : 'Low Stock Only'}</span>
             {stats.lowStockCount > 0 && (
-              <span className="bg-amber-950/60 text-amber-200 text-[10px] px-1.5 py-0.2 rounded-full">
+              <span className="bg-red-100 text-red-600 font-bold text-[10px] px-1.5 py-0.5 rounded-full">
                 {stats.lowStockCount}
               </span>
             )}
@@ -629,8 +682,8 @@ export default function ProductsPage() {
               onClick={() => setSelectedCategory(cat.id)}
               className={`px-4 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
                 isActive
-                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-900/30'
-                  : 'bg-slate-900/90 text-slate-400 hover:text-slate-200 hover:bg-slate-800 border border-slate-800'
+                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-200'
+                  : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200'
               }`}
             >
               {cat.label}
@@ -640,28 +693,28 @@ export default function ProductsPage() {
       </div>
 
       {/* Main Products Table */}
-      <div className="bg-slate-900/80 border border-slate-800/80 rounded-2xl shadow-xl overflow-hidden backdrop-blur-sm">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-800/60 border-b border-slate-800 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                <th className="py-3.5 px-4">{isUrdu ? 'پروڈکٹ کا نام' : 'Product Name'}</th>
-                <th className="py-3.5 px-4">{isUrdu ? 'کمپنی / برانڈ' : 'Company'}</th>
-                <th className="py-3.5 px-4">{isUrdu ? 'پیکنگ / وزن' : 'Packing Unit'}</th>
-                <th className="py-3.5 px-4">{isUrdu ? 'خرید قیمت' : 'Cost (خرید)'}</th>
-                <th className="py-3.5 px-4">{isUrdu ? 'فروخت قیمت' : 'Sale (فروخت)'}</th>
-                <th className="py-3.5 px-4">{isUrdu ? 'منافع فی بوری' : 'Margin / Bag'}</th>
-                <th className="py-3.5 px-4">{isUrdu ? 'موجودہ اسٹاک' : 'Stock Level'}</th>
-                <th className="py-3.5 px-4">{isUrdu ? 'گودام ریک' : 'Rack Location'}</th>
-                <th className="py-3.5 px-4 text-center">{isUrdu ? 'کارروائی' : 'Actions'}</th>
+              <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider">
+                <th className="py-3.5 px-4 min-w-[250px] text-blue-600">{isUrdu ? 'پروڈکٹ کا نام' : 'Product Name'}</th>
+                <th className="py-3.5 px-4 text-purple-600">{isUrdu ? 'کمپنی / برانڈ' : 'Company'}</th>
+                <th className="py-3.5 px-4 text-pink-600">{isUrdu ? 'پیکنگ / وزن' : 'Packing Unit'}</th>
+                <th className="py-3.5 px-4 text-rose-600">{isUrdu ? 'خرید قیمت' : 'Cost (خرید)'}</th>
+                <th className="py-3.5 px-4 text-emerald-600">{isUrdu ? 'فروخت قیمت' : 'Sale (فروخت)'}</th>
+                <th className="py-3.5 px-4 text-teal-600">{isUrdu ? 'منافع فی بوری' : 'Margin / Bag'}</th>
+                <th className="py-3.5 px-4 text-amber-600">{isUrdu ? 'موجودہ اسٹاک' : 'Stock Level'}</th>
+                <th className="py-3.5 px-4 text-indigo-600">{isUrdu ? 'گودام ریک' : 'Rack Location'}</th>
+                <th className="py-3.5 px-4 text-center text-slate-600">{isUrdu ? 'کارروائی' : 'Actions'}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-sm">
+            <tbody className="divide-y divide-slate-100 text-sm">
               {filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-12 text-slate-400">
-                    <div className="text-3xl mb-2">🔍</div>
-                    <p className="font-medium">
+                  <td colSpan={9} className="text-center py-12 text-slate-500">
+                    <div className="text-3xl mb-2 text-slate-300">🔍</div>
+                    <p className="font-medium text-slate-700">
                       {isUrdu ? 'کوئی پراڈکٹ نہیں ملی' : 'No products found'}
                     </p>
                     <p className="text-xs text-slate-500 mt-1">
@@ -680,32 +733,32 @@ export default function ProductsPage() {
                   return (
                     <tr
                       key={p.id}
-                      className="hover:bg-slate-800/40 transition group cursor-default"
+                      className="hover:bg-slate-50/80 transition group cursor-default"
                     >
                       {/* Name & Urdu Subtitle */}
                       <td className="py-3 px-4">
-                        <div className="font-semibold text-white group-hover:text-emerald-400 transition">
+                        <div className="font-semibold text-slate-800 group-hover:text-emerald-600 transition">
                           {p.name}
                         </div>
                         {p.urdu_name && (
-                          <div className="text-xs text-slate-400 font-urdu mt-0.5">
+                          <div className="text-xs text-slate-500 font-urdu mt-0.5">
                             {p.urdu_name}
                           </div>
                         )}
-                        <span className="text-[10px] text-slate-500 font-mono bg-slate-800 px-1.5 py-0.5 rounded mt-1 inline-block">
+                        <span className="text-[10px] text-slate-500 font-mono bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded mt-1 inline-block">
                           {p.sku}
                         </span>
                       </td>
 
                       {/* Company */}
                       <td className="py-3 px-4">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700">
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border whitespace-nowrap ${getCompanyColor(p.company_name)}`}>
                           {p.company_name}
                         </span>
                       </td>
 
                       {/* Unit */}
-                      <td className="py-3 px-4 text-xs text-slate-300">
+                      <td className="py-3 px-4 text-xs text-slate-500 font-medium">
                         {p.unit === 'bag_50kg' && (isUrdu ? '۵۰ کلو بوری' : '50 kg Bag')}
                         {p.unit === 'bag_25kg' && (isUrdu ? '۲۵ کلو بوری' : '25 kg Bag')}
                         {p.unit === 'bottle_1l' && (isUrdu ? '۱ لیٹر بوتل' : '1 Litre')}
@@ -717,22 +770,22 @@ export default function ProductsPage() {
                       </td>
 
                       {/* Cost Price */}
-                      <td className="py-3 px-4 font-mono text-slate-300">
+                      <td className="py-3 px-4 font-mono text-slate-600 whitespace-nowrap">
                         Rs. {p.cost_price.toLocaleString()}
                       </td>
 
                       {/* Sale Price */}
-                      <td className="py-3 px-4 font-mono font-bold text-white">
+                      <td className="py-3 px-4 font-mono font-bold text-slate-800 whitespace-nowrap">
                         Rs. {p.sale_price.toLocaleString()}
                       </td>
 
                       {/* Margin */}
                       <td className="py-3 px-4 font-mono">
                         <span
-                          className={`text-xs px-2 py-0.5 rounded-md font-semibold ${
+                          className={`inline-block whitespace-nowrap text-xs px-2 py-0.5 rounded-md font-semibold ${
                             margin >= 200
-                              ? 'bg-emerald-500/10 text-emerald-400'
-                              : 'bg-slate-800 text-slate-300'
+                              ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                              : 'bg-slate-100 text-slate-600 border border-slate-200'
                           }`}
                         >
                           +Rs. {margin.toLocaleString()}
@@ -743,12 +796,12 @@ export default function ProductsPage() {
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-2">
                           <span
-                            className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${
+                            className={`px-2.5 py-1 rounded-full text-xs font-bold flex items-center gap-1 border ${
                               isOut
-                                ? 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                ? 'bg-red-50 text-red-600 border-red-200'
                                 : isLow
-                                  ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
-                                  : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                  ? 'bg-amber-50 text-amber-600 border-amber-200'
+                                  : 'bg-emerald-50 text-emerald-600 border-emerald-200'
                             }`}
                           >
                             <span>{isOut ? '🔴' : isLow ? '🟡' : '🟢'}</span>
@@ -759,14 +812,14 @@ export default function ProductsPage() {
                           </span>
                         </div>
                         {isLow && !isOut && (
-                          <div className="text-[10px] text-amber-400/90 mt-1 font-medium">
+                          <div className="text-[10px] text-amber-600 mt-1 font-medium">
                             {isUrdu ? `کم از کم: ${p.min_stock_alert}` : `Min alert: ${p.min_stock_alert}`}
                           </div>
                         )}
                       </td>
 
                       {/* Rack Location */}
-                      <td className="py-3 px-4 text-xs text-slate-400 font-urdu">
+                      <td className="py-3 px-4 text-xs text-slate-500 font-urdu">
                         {p.rack_location || (isUrdu ? 'عام گودام' : 'General Godown')}
                       </td>
 
@@ -780,7 +833,7 @@ export default function ProductsPage() {
                               setSelectedProduct(p);
                               setIsAdjustModalOpen(true);
                             }}
-                            className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-amber-400 transition"
+                            className="p-1.5 rounded-lg bg-slate-50 hover:bg-slate-200 border border-slate-200 text-slate-600 hover:text-emerald-600 transition"
                           >
                             ⚖️
                           </button>
@@ -796,31 +849,24 @@ export default function ProductsPage() {
       </div>
 
       {/* ========================================================================= */}
+      {/* ========================================================================= */}
       {/* MODAL 1: ADD NEW PRODUCT                                                  */}
       {/* ========================================================================= */}
-      {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl p-6 text-white">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-              <div>
-                <h3 className={`text-xl font-bold ${isUrdu ? 'font-urdu' : ''}`}>
-                  {isUrdu ? 'نیا کھاد یا بیج پروڈکٹ شامل کریں' : 'Add New Fertilizer / Seed Item'}
-                </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  {isUrdu
-                    ? 'گودام میں نیا آئٹم، کمپنی ریٹ اور ابتدائی بوریوں کی تعداد درج کریں'
-                    : 'Enter product details, pricing, packing size, and initial stock count.'}
-                </p>
-              </div>
-              <button
-                onClick={() => setIsAddModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition"
-              >
-                ✕
-              </button>
-            </div>
+      <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+        <DialogContent className="max-w-2xl bg-slate-900 border border-slate-800 text-white rounded-3xl shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className={`text-xl font-bold text-white ${isUrdu ? 'font-urdu' : ''}`}>
+              {isUrdu ? 'نیا کھاد یا بیج پروڈکٹ شامل کریں' : 'Add New Fertilizer / Seed Item'}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-400 mt-0.5">
+              {isUrdu
+                ? 'گودام میں نیا آئٹم، کمپنی ریٹ اور ابتدائی بوریوں کی تعداد درج کریں'
+                : 'Enter product details, pricing, packing size, and initial stock count.'}
+            </DialogDescription>
+          </DialogHeader>
 
-            <form onSubmit={handleAddProduct} className="space-y-4 mt-4">
+          <form onSubmit={handleAddProduct} className="flex-1 flex flex-col overflow-hidden">
+            <div className="flex-1 overflow-y-auto px-6 py-5 custom-scrollbar space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* English Name */}
                 <div>
@@ -858,21 +904,25 @@ export default function ProductsPage() {
                   <label className="block text-xs font-semibold text-slate-300 mb-1">
                     {isUrdu ? 'کمپنی / مینوفیکچرر*' : 'Company / Brand*'}
                   </label>
-                  <select
+                  <Select
                     value={newProduct.companyName}
-                    onChange={(e) => setNewProduct({ ...newProduct, companyName: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    onValueChange={(val) => setNewProduct({ ...newProduct, companyName: val })}
                   >
-                    <option value="Fauji Fertilizer (FFC)">Fauji Fertilizer (FFC) - سونا کھاد</option>
-                    <option value="Engro Fertilizers">Engro Fertilizers - اینگرو</option>
-                    <option value="Fatima Fertilizer">Fatima Fertilizer - سرسَبز</option>
-                    <option value="Pakchem">Pakchem / Agritech - پاک کیم</option>
-                    <option value="Bayer Crop Science">Bayer Crop Science - بائر</option>
-                    <option value="Syngenta">Syngenta - سینجنٹا</option>
-                    <option value="Pioneer Seeds">Pioneer Seeds - پائینیر</option>
-                    <option value="ICI Pakistan">ICI Pakistan - آئی سی آئی</option>
-                    <option value="Local Supplier">Local Supplier / مقامی ڈیلر</option>
-                  </select>
+                    <SelectTrigger className="w-full bg-slate-800 border-slate-700 text-white focus:ring-emerald-500">
+                      <SelectValue placeholder="Select Company" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                      <SelectItem value="Fauji Fertilizer (FFC)">Fauji Fertilizer (FFC) - سونا کھاد</SelectItem>
+                      <SelectItem value="Engro Fertilizers">Engro Fertilizers - اینگرو</SelectItem>
+                      <SelectItem value="Fatima Fertilizer">Fatima Fertilizer - سرسَبز</SelectItem>
+                      <SelectItem value="Pakchem">Pakchem / Agritech - پاک کیم</SelectItem>
+                      <SelectItem value="Bayer Crop Science">Bayer Crop Science - بائر</SelectItem>
+                      <SelectItem value="Syngenta">Syngenta - سینجنٹا</SelectItem>
+                      <SelectItem value="Pioneer Seeds">Pioneer Seeds - پائینیر</SelectItem>
+                      <SelectItem value="ICI Pakistan">ICI Pakistan - آئی سی آئی</SelectItem>
+                      <SelectItem value="Local Supplier">Local Supplier / مقامی ڈیلر</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 {/* Unit / Packing */}
@@ -880,19 +930,23 @@ export default function ProductsPage() {
                   <label className="block text-xs font-semibold text-slate-300 mb-1">
                     {isUrdu ? 'پیکنگ سائز / وزن*' : 'Packing Unit*'}
                   </label>
-                  <select
+                  <Select
                     value={newProduct.unit}
-                    onChange={(e) => setNewProduct({ ...newProduct, unit: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    onValueChange={(val) => setNewProduct({ ...newProduct, unit: val })}
                   >
-                    <option value="bag_50kg">{isUrdu ? '۵۰ کلو بوری (50 kg Bag)' : '50 kg Bag'}</option>
-                    <option value="bag_25kg">{isUrdu ? '۲۵ کلو بوری (25 kg Bag)' : '25 kg Bag'}</option>
-                    <option value="bottle_1l">{isUrdu ? '۱ لیٹر بوتل (1 Litre Bottle)' : '1 Litre Bottle'}</option>
-                    <option value="bottle_500ml">{isUrdu ? '۵۰۰ ملی لٹر بوتل (500 ml Bottle)' : '500 ml Bottle'}</option>
-                    <option value="bottle_250ml">{isUrdu ? '۲۵۰ ملی لٹر بوتل (250 ml Bottle)' : '250 ml Bottle'}</option>
-                    <option value="pack_10kg">{isUrdu ? '۱۰ کلو تھیلی (10 kg Pack)' : '10 kg Pack'}</option>
-                    <option value="pack_1kg">{isUrdu ? '۱ کلو پیکٹ (1 kg Pack)' : '1 kg Pack'}</option>
-                  </select>
+                    <SelectTrigger className="w-full bg-slate-800 border-slate-700 text-white focus:ring-emerald-500">
+                      <SelectValue placeholder="Select Unit" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                      <SelectItem value="bag_50kg">{isUrdu ? '۵۰ کلو بوری (50 kg Bag)' : '50 kg Bag'}</SelectItem>
+                      <SelectItem value="bag_25kg">{isUrdu ? '۲۵ کلو بوری (25 kg Bag)' : '25 kg Bag'}</SelectItem>
+                      <SelectItem value="bottle_1l">{isUrdu ? '۱ لیٹر بوتل (1 Litre Bottle)' : '1 Litre Bottle'}</SelectItem>
+                      <SelectItem value="bottle_500ml">{isUrdu ? '۵۰۰ ملی لٹر بوتل (500 ml Bottle)' : '500 ml Bottle'}</SelectItem>
+                      <SelectItem value="bottle_250ml">{isUrdu ? '۲۵۰ ملی لٹر بوتل (250 ml Bottle)' : '250 ml Bottle'}</SelectItem>
+                      <SelectItem value="pack_10kg">{isUrdu ? '۱۰ کلو تھیلی (10 kg Pack)' : '10 kg Pack'}</SelectItem>
+                      <SelectItem value="pack_1kg">{isUrdu ? '۱ کلو پیکٹ (1 kg Pack)' : '1 kg Pack'}</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
@@ -987,153 +1041,153 @@ export default function ProductsPage() {
                 </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setIsAddModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold transition"
-                >
-                  {isUrdu ? 'منسوخ کریں' : 'Cancel'}
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow-lg shadow-emerald-900/30 transition transform active:scale-95"
-                >
-                  {isUrdu ? 'پروڈکٹ محفوظ کریں' : 'Save Product'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            </div>
+            <DialogFooter>
+              <button
+                type="button"
+                onClick={() => setIsAddModalOpen(false)}
+                className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold transition"
+              >
+                {isUrdu ? 'منسوخ کریں' : 'Cancel'}
+              </button>
+              <button
+                type="submit"
+                className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold shadow-lg shadow-emerald-900/30 transition transform active:scale-95"
+              >
+                {isUrdu ? 'پروڈکٹ محفوظ کریں' : 'Save Product'}
+              </button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
 
+      {/* ========================================================================= */}
       {/* ========================================================================= */}
       {/* MODAL 2: STOCK ADJUSTMENT / DAMAGE                                         */}
       {/* ========================================================================= */}
-      {isAdjustModalOpen && selectedProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-lg shadow-2xl p-6 text-white">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-              <div>
-                <h3 className={`text-xl font-bold ${isUrdu ? 'font-urdu' : ''}`}>
+      <Dialog open={isAdjustModalOpen && !!selectedProduct} onOpenChange={(open) => setIsAdjustModalOpen(open)}>
+        <DialogContent className="max-w-lg bg-slate-900 border border-slate-800 text-white rounded-3xl shadow-2xl">
+          {selectedProduct && (
+            <>
+              <DialogHeader>
+                <DialogTitle className={`text-xl font-bold text-white ${isUrdu ? 'font-urdu' : ''}`}>
                   {isUrdu ? 'اسٹاک درستگی یا نقصان کا اندراج' : 'Stock Adjustment & Damage'}
-                </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                </DialogTitle>
+                <DialogDescription className="text-xs text-slate-400 mt-0.5">
                   {selectedProduct.name} —{' '}
                   <span className="text-emerald-400 font-semibold font-mono">
                     {selectedProduct.current_stock}{' '}
                     {isUrdu ? 'بوریاں موجود ہیں' : 'boriyan in stock'}
                   </span>
-                </p>
-              </div>
-              <button
-                onClick={() => setIsAdjustModalOpen(false)}
-                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition"
-              >
-                ✕
-              </button>
-            </div>
+                </DialogDescription>
+              </DialogHeader>
 
-            <form onSubmit={handleStockAdjustment} className="space-y-4 mt-4">
-              {/* Type */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  {isUrdu ? 'درستگی کی قسم*' : 'Adjustment Type*'}
-                </label>
-                <select
-                  value={adjustmentForm.movementType}
-                  onChange={(e) =>
-                    setAdjustmentForm({
-                      ...adjustmentForm,
-                      movementType: e.target.value as any,
-                    })
-                  }
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                >
-                  <option value="damage">
-                    {isUrdu ? '📦 بوری پھٹ گئی یا مال خراب ہوا (Damage)' : '📦 Damaged / Torn Bag'}
-                  </option>
-                  <option value="adjustment">
-                    {isUrdu ? '🔍 فزیکل گنتی میں فرق / درستگی (Audit)' : '🔍 Physical Audit Correction'}
-                  </option>
-                  <option value="return_in">
-                    {isUrdu ? '↩️ کسان کی طرف سے واپسی (Customer Return)' : '↩️ Customer Return In'}
-                  </option>
-                  <option value="return_out">
-                    {isUrdu ? '↪️ کمپنی کو مال واپسی (Vendor Return)' : '↪️ Vendor Return Out'}
-                  </option>
-                </select>
-              </div>
+              <form onSubmit={handleStockAdjustment} className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex-1 overflow-y-auto px-6 py-5 custom-scrollbar space-y-4">
+                  {/* Type */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      {isUrdu ? 'درستگی کی قسم*' : 'Adjustment Type*'}
+                    </label>
+                    <Select
+                      value={adjustmentForm.movementType}
+                      onValueChange={(val: any) =>
+                        setAdjustmentForm({
+                          ...adjustmentForm,
+                          movementType: val,
+                        })
+                      }
+                    >
+                      <SelectTrigger className="w-full bg-slate-800 border-slate-700 text-white focus:ring-emerald-500">
+                        <SelectValue placeholder="Select Type" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                        <SelectItem value="damage">
+                          {isUrdu ? '📦 بوری پھٹ گئی یا مال خراب ہوا (Damage)' : '📦 Damaged / Torn Bag'}
+                        </SelectItem>
+                        <SelectItem value="adjustment">
+                          {isUrdu ? '🔍 فزیکل گنتی میں فرق / درستگی (Audit)' : '🔍 Physical Audit Correction'}
+                        </SelectItem>
+                        <SelectItem value="return_in">
+                          {isUrdu ? '↩️ کسان کی طرف سے واپسی (Customer Return)' : '↩️ Customer Return In'}
+                        </SelectItem>
+                        <SelectItem value="return_out">
+                          {isUrdu ? '↪️ کمپنی کو مال واپسی (Vendor Return)' : '↪️ Vendor Return Out'}
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              {/* Quantity */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  {isUrdu
-                    ? 'بوریوں کی تعداد (کم کرنے کے لیے منفی مثلاً -2 لگائیں)*'
-                    : 'Quantity Change (Use negative e.g. -2 to deduct)*'}
-                </label>
-                <input
-                  type="number"
-                  required
-                  value={adjustmentForm.quantity}
-                  onChange={(e) =>
-                    setAdjustmentForm({ ...adjustmentForm, quantity: e.target.value })
-                  }
-                  placeholder="-2"
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-amber-400 font-bold font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                />
-                <p className="text-[11px] text-slate-400 mt-1">
-                  {isUrdu
-                    ? `تبدیلی کے بعد متوقع اسٹاک: ${
-                        selectedProduct.current_stock + (Number(adjustmentForm.quantity) || 0)
-                      } بوریاں`
-                    : `Projected new stock: ${
-                        selectedProduct.current_stock + (Number(adjustmentForm.quantity) || 0)
-                      } bags`}
-                </p>
-              </div>
+                  {/* Quantity */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      {isUrdu
+                        ? 'بوریوں کی تعداد (کم کرنے کے لیے منفی مثلاً -2 لگائیں)*'
+                        : 'Quantity Change (Use negative e.g. -2 to deduct)*'}
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      value={adjustmentForm.quantity}
+                      onChange={(e) =>
+                        setAdjustmentForm({ ...adjustmentForm, quantity: e.target.value })
+                      }
+                      placeholder="-2"
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-amber-400 font-bold font-mono focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                    />
+                    <p className="text-[11px] text-slate-400 mt-1">
+                      {isUrdu
+                        ? `تبدیلی کے بعد متوقع اسٹاک: ${
+                            selectedProduct.current_stock + (Number(adjustmentForm.quantity) || 0)
+                          } بوریاں`
+                        : `Projected new stock: ${
+                            selectedProduct.current_stock + (Number(adjustmentForm.quantity) || 0)
+                          } bags`}
+                    </p>
+                  </div>
 
-              {/* Reason */}
-              <div>
-                <label className="block text-xs font-semibold text-slate-300 mb-1">
-                  {isUrdu ? 'وجہ یا تفصیل' : 'Reason / Note'}
-                </label>
-                <textarea
-                  rows={2}
-                  value={adjustmentForm.reason}
-                  onChange={(e) =>
-                    setAdjustmentForm({ ...adjustmentForm, reason: e.target.value })
-                  }
-                  placeholder={
-                    isUrdu
-                      ? 'مثلاً: لوڈنگ کے دوران ہک لگنے سے بوری پھٹ گئی'
-                      : 'e.g. Torn bag during trolley loading'
-                  }
-                  className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none font-urdu"
-                />
-              </div>
+                  {/* Reason */}
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1">
+                      {isUrdu ? 'وجہ یا تفصیل' : 'Reason / Note'}
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={adjustmentForm.reason}
+                      onChange={(e) =>
+                        setAdjustmentForm({ ...adjustmentForm, reason: e.target.value })
+                      }
+                      placeholder={
+                        isUrdu
+                          ? 'مثلاً: لوڈنگ کے دوران ہک لگنے سے بوری پھٹ گئی'
+                          : 'e.g. Torn bag during trolley loading'
+                      }
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none font-urdu"
+                    />
+                  </div>
+                </div>
 
-              {/* Actions */}
-              <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setIsAdjustModalOpen(false)}
-                  className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold transition"
-                >
-                  {isUrdu ? 'منسوخ کریں' : 'Cancel'}
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-sm shadow-lg shadow-amber-900/30 transition transform active:scale-95"
-                >
-                  {isUrdu ? 'اسٹاک درست کریں' : 'Confirm Adjustment'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+                {/* Actions */}
+                <DialogFooter>
+                  <button
+                    type="button"
+                    onClick={() => setIsAdjustModalOpen(false)}
+                    className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold transition"
+                  >
+                    {isUrdu ? 'منسوخ کریں' : 'Cancel'}
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-6 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold text-sm shadow-lg shadow-amber-900/30 transition transform active:scale-95"
+                  >
+                    {isUrdu ? 'اسٹاک درست کریں' : 'Confirm Adjustment'}
+                  </button>
+                </DialogFooter>
+              </form>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+  </div>
+);
 }

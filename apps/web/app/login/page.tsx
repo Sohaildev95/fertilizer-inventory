@@ -43,29 +43,61 @@ export default function LoginPage() {
     }
   };
 
-  const handleFillDemo = () => {
-    setEmail('admin@fertilizer.pk');
-    setPassword('AdminPassword123!');
+  const [selectedDemoRole, setSelectedDemoRole] = useState<'admin' | 'manager' | 'sales' | 'vendor'>('admin');
+
+  const demoAccounts = {
+    admin: {
+      email: 'admin@fertilizer.pk',
+      password: 'AdminPassword123!',
+      roleName: 'Super Admin (دکان مالک / چاچو)',
+      badge: '👑 Malik (Full Control)',
+    },
+    manager: {
+      email: 'manager@fertilizer.pk',
+      password: 'ManagerPassword123!',
+      roleName: 'Shop Manager (منشی)',
+      badge: '📋 Munshi (Stock & Khata)',
+    },
+    sales: {
+      email: 'sales@fertilizer.pk',
+      password: 'SalesPassword123!',
+      roleName: 'Sales Staff (کاؤنٹر سیلز مین)',
+      badge: '🛒 Counter (POS Billing)',
+    },
+    vendor: {
+      email: 'vendor@fertilizer.pk',
+      password: 'VendorPassword123!',
+      roleName: 'Vendor (سپلائر / کمپنی)',
+      badge: '🚚 Vendor (Stock Supply)',
+    },
+  };
+
+  const handleFillDemo = (role: 'admin' | 'manager' | 'sales' | 'vendor' = 'admin') => {
+    setSelectedDemoRole(role);
+    setEmail(demoAccounts[role].email);
+    setPassword(demoAccounts[role].password);
     setError(null);
   };
 
   return (
     <div
       style={{
-        minHeight: '100vh',
+        height: '100vh',
         display: 'flex',
         background: 'linear-gradient(135deg, #064e3b 0%, #0f172a 100%)',
         color: '#ffffff',
+        overflow: 'hidden',
       }}
     >
       {/* Left Column: Brand Hero Banner (Desktop) */}
       <div
         style={{
           flex: '1.1',
-          padding: '60px 48px',
+          padding: '40px',
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'space-between',
+          justifyContent: 'center',
+          gap: '24px',
           position: 'relative',
           overflow: 'hidden',
           borderRight: '1px solid rgba(255, 255, 255, 0.08)',
@@ -126,7 +158,7 @@ export default function LoginPage() {
         </div>
 
         {/* Center Content */}
-        <div style={{ maxWidth: '520px', margin: '40px 0', zIndex: 1 }}>
+        <div style={{ maxWidth: '520px', zIndex: 1 }}>
           <div
             style={{
               display: 'inline-flex',
@@ -137,22 +169,22 @@ export default function LoginPage() {
               background: 'rgba(16, 185, 129, 0.15)',
               border: '1px solid rgba(16, 185, 129, 0.3)',
               color: '#6ee7b7',
-              fontSize: '13px',
+              fontSize: '12px',
               fontWeight: '600',
-              marginBottom: '24px',
+              marginBottom: '16px',
             }}
           >
-            <Sparkles size={16} />
+            <Sparkles size={14} />
             <span>Pakistani Fertilizer Market ke liye Makhsoos</span>
           </div>
 
           <h2
             style={{
-              fontSize: '38px',
+              fontSize: '32px',
               fontWeight: '800',
               lineHeight: '1.2',
               letterSpacing: '-1px',
-              marginBottom: '18px',
+              marginBottom: '12px',
             }}
           >
             Dukan ka Munafa aur Khata,{' '}
@@ -167,76 +199,76 @@ export default function LoginPage() {
             </span>
           </h2>
 
-          <p style={{ fontSize: '16px', color: '#94a3b8', lineHeight: '1.6', marginBottom: '36px' }}>
+          <p style={{ fontSize: '14px', color: '#94a3b8', lineHeight: '1.5', marginBottom: '24px' }}>
             Fast POS counter billing, godown stock tracking, zamindar udhaar khata ledger aur vendor bills ka digital record.
           </p>
 
           {/* Feature Highlights Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div
               style={{
-                padding: '16px',
-                borderRadius: '12px',
+                padding: '12px',
+                borderRadius: '10px',
                 background: 'rgba(255, 255, 255, 0.05)',
                 border: '1px solid rgba(255, 255, 255, 0.08)',
               }}
             >
-              <Receipt size={22} color="#34d399" style={{ marginBottom: '8px' }} />
-              <h4 style={{ fontSize: '14px', fontWeight: '700', marginBottom: '4px' }}>
+              <Receipt size={18} color="#34d399" style={{ marginBottom: '6px' }} />
+              <h4 style={{ fontSize: '13px', fontWeight: '700', marginBottom: '2px' }}>
                 Instant POS Billing
               </h4>
-              <p style={{ fontSize: '12px', color: '#94a3b8' }}>
+              <p style={{ fontSize: '11px', color: '#94a3b8' }}>
                 Thermal print aur Urdu customer receipt.
               </p>
             </div>
 
             <div
               style={{
-                padding: '16px',
-                borderRadius: '12px',
+                padding: '12px',
+                borderRadius: '10px',
                 background: 'rgba(255, 255, 255, 0.05)',
                 border: '1px solid rgba(255, 255, 255, 0.08)',
               }}
             >
-              <BookOpen size={22} color="#fbbf24" style={{ marginBottom: '8px' }} />
-              <h4 style={{ fontSize: '14px', fontWeight: '700', marginBottom: '4px' }}>
+              <BookOpen size={18} color="#fbbf24" style={{ marginBottom: '6px' }} />
+              <h4 style={{ fontSize: '13px', fontWeight: '700', marginBottom: '2px' }}>
                 Udhaar Khata Ledger
               </h4>
-              <p style={{ fontSize: '12px', color: '#94a3b8' }}>
+              <p style={{ fontSize: '11px', color: '#94a3b8' }}>
                 Zamindaron ka ba-aasan hisaab aur limit alerts.
               </p>
             </div>
 
             <div
               style={{
-                padding: '16px',
-                borderRadius: '12px',
+                padding: '12px',
+                borderRadius: '10px',
                 background: 'rgba(255, 255, 255, 0.05)',
                 border: '1px solid rgba(255, 255, 255, 0.08)',
               }}
             >
-              <TrendingUp size={22} color="#60a5fa" style={{ marginBottom: '8px' }} />
-              <h4 style={{ fontSize: '14px', fontWeight: '700', marginBottom: '4px' }}>
+              <TrendingUp size={18} color="#60a5fa" style={{ marginBottom: '6px' }} />
+              <h4 style={{ fontSize: '13px', fontWeight: '700', marginBottom: '2px' }}>
                 Stock & Expiry Alerts
               </h4>
-              <p style={{ fontSize: '12px', color: '#94a3b8' }}>
+              <p style={{ fontSize: '11px', color: '#94a3b8' }}>
                 Batch number aur godown rack tracking.
               </p>
             </div>
 
             <div
               style={{
-                padding: '16px',
-                borderRadius: '12px',
+                padding: '12px',
+                borderRadius: '10px',
                 background: 'rgba(255, 255, 255, 0.05)',
                 border: '1px solid rgba(255, 255, 255, 0.08)',
               }}
             >
-              <ShieldCheck size={22} color="#a78bfa" style={{ marginBottom: '8px' }} />
-              <h4 style={{ fontSize: '14px', fontWeight: '700', marginBottom: '4px' }}>
+              <ShieldCheck size={18} color="#a78bfa" style={{ marginBottom: '6px' }} />
+              <h4 style={{ fontSize: '13px', fontWeight: '700', marginBottom: '2px' }}>
                 Role Based Access
               </h4>
-              <p style={{ fontSize: '12px', color: '#94a3b8' }}>
+              <p style={{ fontSize: '11px', color: '#94a3b8' }}>
                 Malik, Manager, Salesman aur Vendor Portal.
               </p>
             </div>
@@ -257,24 +289,25 @@ export default function LoginPage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: '40px 24px',
+          padding: '20px',
           background: 'rgba(15, 23, 42, 0.75)',
+          overflow: 'hidden',
         }}
       >
         <div
           className="fade-in"
           style={{
             width: '100%',
-            maxWidth: '440px',
+            maxWidth: '400px',
             background: '#ffffff',
-            borderRadius: '20px',
-            padding: '40px',
+            borderRadius: '16px',
+            padding: '20px 24px',
             boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.35)',
             color: '#0f172a',
           }}
         >
           {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '28px' }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '16px' }}>
             <div>
               <div
                 style={{
@@ -319,14 +352,14 @@ export default function LoginPage() {
                 marginBottom: '20px',
               }}
             >
-              <AlertCircle size={18} style={{ flexShrink: 0 }} />
+              <AlertCircle size={16} style={{ flexShrink: 0 }} />
               <span>{error}</span>
             </div>
           )}
 
           {/* Form */}
           <form onSubmit={handleSubmit}>
-            <div className="form-group">
+            <div className="form-group" style={{ marginBottom: '12px' }}>
               <label className="form-label" htmlFor="email-input">
                 <span>Email Address</span>
                 <span style={{ color: '#94a3b8', fontWeight: '400', fontSize: '12px' }}>رجسٹرڈ ای میل</span>
@@ -350,7 +383,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <div className="form-group">
+            <div className="form-group" style={{ marginBottom: '12px' }}>
               <label className="form-label" htmlFor="password-input">
                 <span>Password</span>
                 <span style={{ color: '#94a3b8', fontWeight: '400', fontSize: '12px' }}>پاس ورڈ</span>
@@ -395,8 +428,8 @@ export default function LoginPage() {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                fontSize: '13px',
-                margin: '18px 0 24px',
+                fontSize: '12px',
+                margin: '12px 0 16px',
               }}
             >
               <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', color: '#475569' }}>
@@ -410,29 +443,123 @@ export default function LoginPage() {
               type="submit"
               disabled={loading}
               className="btn btn-primary"
-              style={{ width: '100%', padding: '13px', fontSize: '15px' }}
+              style={{ width: '100%', padding: '10px', fontSize: '14px' }}
             >
               {loading ? (
                 <span>Taseeq ho rahi hai...</span>
               ) : (
                 <>
                   <span>Sign In Karein</span>
-                  <ArrowRight size={18} />
+                  <ArrowRight size={16} />
                 </>
               )}
             </button>
           </form>
 
-          {/* Quick Demo Fill & Register Links */}
-          <div style={{ marginTop: '24px', paddingTop: '20px', borderTop: '1px solid #f1f5f9' }}>
-            <button
-              type="button"
-              onClick={handleFillDemo}
-              className="btn btn-secondary"
-              style={{ width: '100%', fontSize: '13px', padding: '9px', marginBottom: '16px' }}
-            >
-              ✨ Auto Fill Demo Admin Credentials
-            </button>
+          {/* Quick Demo Role Selector */}
+          <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid #f1f5f9' }}>
+            <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <span style={{ fontSize: '11px', fontWeight: '700', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                🚀 Quick Demo Login by Role:
+              </span>
+              <span style={{ fontSize: '10px', color: '#059669', fontWeight: '600' }}>
+                {demoAccounts[selectedDemoRole].badge}
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '6px', marginBottom: '12px' }}>
+              <button
+                type="button"
+                onClick={() => handleFillDemo('admin')}
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: '10px',
+                  border: selectedDemoRole === 'admin' ? '2px solid #059669' : '1px solid #e2e8f0',
+                  background: selectedDemoRole === 'admin' ? '#ecfdf5' : '#ffffff',
+                  color: selectedDemoRole === 'admin' ? '#065f46' : '#334155',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span>👑</span>
+                <span>Super Admin (مالک)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleFillDemo('manager')}
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: '10px',
+                  border: selectedDemoRole === 'manager' ? '2px solid #059669' : '1px solid #e2e8f0',
+                  background: selectedDemoRole === 'manager' ? '#ecfdf5' : '#ffffff',
+                  color: selectedDemoRole === 'manager' ? '#065f46' : '#334155',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span>📋</span>
+                <span>Manager (منشی)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleFillDemo('sales')}
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: '10px',
+                  border: selectedDemoRole === 'sales' ? '2px solid #059669' : '1px solid #e2e8f0',
+                  background: selectedDemoRole === 'sales' ? '#ecfdf5' : '#ffffff',
+                  color: selectedDemoRole === 'sales' ? '#065f46' : '#334155',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span>🛒</span>
+                <span>Sales Staff (کاؤنٹر)</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleFillDemo('vendor')}
+                style={{
+                  padding: '8px 10px',
+                  borderRadius: '10px',
+                  border: selectedDemoRole === 'vendor' ? '2px solid #059669' : '1px solid #e2e8f0',
+                  background: selectedDemoRole === 'vendor' ? '#ecfdf5' : '#ffffff',
+                  color: selectedDemoRole === 'vendor' ? '#065f46' : '#334155',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                <span>🚚</span>
+                <span>Vendor (سپلائر)</span>
+              </button>
+            </div>
 
             <p style={{ textAlign: 'center', fontSize: '13px', color: '#64748b' }}>
               Nayi dukan ka account banana hai?{' '}
