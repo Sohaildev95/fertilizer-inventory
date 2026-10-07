@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '../../../../components/ui/select';
+import { DatePicker } from '../../../../components/ui/date-picker';
 
 const AVAILABLE_PRODUCTS = [
   { id: 'prd-1', name: 'Sona Urea 50kg (سونا یوریا)', defaultCost: 4200 },
@@ -181,12 +182,11 @@ export default function NewPurchasePage() {
               <label className="block text-xs font-semibold text-slate-600 mb-1.5">
                 {isUrdu ? 'آمد کی تاریخ*' : 'Arrival Date*'}
               </label>
-              <input
-                type="date"
-                required
+              <DatePicker
                 value={formData.date}
-                onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-emerald-500 focus:bg-white focus:outline-none"
+                onChange={(date) => setFormData({ ...formData, date })}
+                className="bg-slate-50 border-slate-200 text-slate-900 font-semibold hover:border-slate-300 focus:bg-white"
+                required
               />
             </div>
 

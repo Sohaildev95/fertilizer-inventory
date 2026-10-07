@@ -18,7 +18,6 @@ import {
   Sprout,
   Menu,
   X,
-  Search,
   PlusCircle,
   Bell,
   Shield,
@@ -295,32 +294,28 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             zIndex: 30,
           }}
         >
-          {/* Search Box */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, maxWidth: '480px' }}>
-            <div style={{ position: 'relative', width: '100%' }}>
-              <Search
-                size={18}
-                color="#94a3b8"
-                style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }}
-              />
-              <input
-                type="text"
-                placeholder={
-                  isUrdu
-                    ? 'کھاد (یوریا، ڈی اے پی)، بل نمبر، زمیندار کا نام تلاش کریں...'
-                    : 'Search fertilizer (Urea, DAP), bills, customer...'
-                }
-                className="form-input"
-                style={{
-                  paddingInlineStart: '38px',
-                  backgroundColor: '#f8fafc',
-                  border: '1px solid #e2e8f0',
-                  fontSize: '13px',
-                  paddingTop: '8px',
-                  paddingBottom: '8px',
-                }}
-              />
-            </div>
+          {/* Left: System Status / Store Title */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: '#10b981',
+                boxShadow: '0 0 0 3px rgba(16, 185, 129, 0.25)',
+              }}
+            />
+            <span
+              style={{
+                fontSize: '13px',
+                fontWeight: '600',
+                color: '#64748b',
+                letterSpacing: '0.01em',
+              }}
+              className={isUrdu ? 'font-urdu' : ''}
+            >
+              {isUrdu ? 'کھاد انوینٹری و کاؤنٹر سیلنگ سسٹم (آن لائن)' : 'Fertilizer POS & Inventory Portal'}
+            </span>
           </div>
 
           {/* Quick Actions & Language Toggle */}

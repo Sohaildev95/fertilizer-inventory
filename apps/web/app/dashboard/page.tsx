@@ -11,6 +11,7 @@ import {
   AlertTriangle,
   ShoppingCart,
 } from 'lucide-react';
+import { DashboardCharts } from '../../components/dashboard-charts';
 
 export default function DashboardPage() {
   const { profile } = useAuth();
@@ -206,6 +207,9 @@ export default function DashboardPage() {
           );
         })}
       </div>
+
+      {/* 4 Beautiful Animated Business Charts */}
+      <DashboardCharts />
 
       {/* Lower Section: 2 Columns */}
       <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1.1fr', gap: '24px' }}>

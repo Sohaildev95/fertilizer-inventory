@@ -261,14 +261,14 @@ export default function VendorsPage() {
       {/* Vendors Table/List view */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500">
-                <th className="py-3 px-4 font-semibold text-slate-700">{isUrdu ? 'کمپنی کا نام' : 'Company'}</th>
-                <th className="py-3 px-4 font-semibold text-slate-700">{isUrdu ? 'رابطہ و پتہ' : 'Contact & Address'}</th>
-                <th className="py-3 px-4 font-semibold text-slate-700">{isUrdu ? 'اسٹیٹس' : 'Status'}</th>
-                <th className="py-3 px-4 font-semibold text-right text-slate-700">{isUrdu ? 'موجودہ بیلنس' : 'Current Balance'}</th>
-                <th className="py-3 px-4 font-semibold text-center text-slate-700">{isUrdu ? 'عمل' : 'Actions'}</th>
+              <tr className="bg-slate-50/80 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 whitespace-nowrap">
+                <th className="py-3 px-4 font-semibold text-slate-700 whitespace-nowrap">{isUrdu ? 'کمپنی کا نام' : 'Company'}</th>
+                <th className="py-3 px-4 font-semibold text-slate-700 whitespace-nowrap">{isUrdu ? 'رابطہ و پتہ' : 'Contact & Address'}</th>
+                <th className="py-3 px-4 font-semibold text-slate-700 whitespace-nowrap">{isUrdu ? 'اسٹیٹس' : 'Status'}</th>
+                <th className="py-3 px-4 font-semibold text-right text-slate-700 whitespace-nowrap">{isUrdu ? 'موجودہ بیلنس' : 'Current Balance'}</th>
+                <th className="py-3 px-4 font-semibold text-center text-slate-700 whitespace-nowrap">{isUrdu ? 'عمل' : 'Actions'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
@@ -285,36 +285,36 @@ export default function VendorsPage() {
                   const initial = vendor.companyName.charAt(0).toUpperCase();
 
                   return (
-                    <tr key={vendor.id} className="hover:bg-slate-50/50 transition group">
+                    <tr key={vendor.id} className="hover:bg-slate-50/50 transition group whitespace-nowrap">
                       {/* Company Info */}
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <div className="flex items-center gap-3 whitespace-nowrap">
                           <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg border shadow-sm ${avatarClasses}`}>
                             {initial}
                           </div>
-                          <div>
-                            <div className="font-bold text-slate-900 text-sm">{vendor.companyName}</div>
-                            <div className="text-xs text-slate-500 mt-0.5 capitalize">{vendor.type} Supplier</div>
+                          <div className="whitespace-nowrap">
+                            <div className="font-bold text-slate-900 text-sm whitespace-nowrap">{vendor.companyName}</div>
+                            <div className="text-xs text-slate-500 mt-0.5 capitalize whitespace-nowrap">{vendor.type} Supplier</div>
                           </div>
                         </div>
                       </td>
 
                       {/* Contact Info */}
-                      <td className="py-4 px-4">
-                        <div className="space-y-1">
-                          <div className="text-sm font-medium text-slate-700 flex items-center gap-1.5">
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <div className="space-y-1 whitespace-nowrap">
+                          <div className="text-sm font-medium text-slate-700 flex items-center gap-1.5 whitespace-nowrap">
                             {vendor.contactPerson}
                           </div>
-                          <div className="text-xs text-slate-500 flex items-center gap-3">
-                            <span className="flex items-center gap-1"><Phone className="w-3 h-3" /> {vendor.phone}</span>
-                            <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {vendor.city}</span>
+                          <div className="text-xs text-slate-500 flex items-center gap-3 whitespace-nowrap">
+                            <span className="flex items-center gap-1 whitespace-nowrap"><Phone className="w-3 h-3" /> <span dir="ltr">{vendor.phone}</span></span>
+                            <span className="flex items-center gap-1 whitespace-nowrap"><MapPin className="w-3 h-3" /> {vendor.city}</span>
                           </div>
                         </div>
                       </td>
 
                       {/* Status */}
-                      <td className="py-4 px-4">
-                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border ${
+                      <td className="py-4 px-4 whitespace-nowrap">
+                        <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border whitespace-nowrap ${
                           vendor.status === 'active' 
                             ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
                             : 'bg-slate-100 text-slate-600 border-slate-200'
@@ -325,24 +325,24 @@ export default function VendorsPage() {
                       </td>
 
                       {/* Balance */}
-                      <td className="py-4 px-4 text-right">
+                      <td className="py-4 px-4 text-right whitespace-nowrap">
                         {vendor.balance === 0 ? (
-                          <span className="text-sm font-semibold text-slate-400">Rs. 0 (Nil)</span>
+                          <span className="text-sm font-semibold text-slate-400 whitespace-nowrap">Rs. 0 (Nil)</span>
                         ) : vendor.balance > 0 ? (
-                          <div className="flex flex-col items-end">
-                            <span className="text-sm font-bold text-rose-600">{formatCurrency(vendor.balance)}</span>
-                            <span className="text-[10px] uppercase font-bold text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded mt-0.5 tracking-wider">Payable (دینے ہیں)</span>
+                          <div className="flex flex-col items-end whitespace-nowrap">
+                            <span className="text-sm font-bold text-rose-600 whitespace-nowrap">{formatCurrency(vendor.balance)}</span>
+                            <span className="text-[10px] uppercase font-bold text-rose-500 bg-rose-50 px-1.5 py-0.5 rounded mt-0.5 tracking-wider whitespace-nowrap">Payable (دینے ہیں)</span>
                           </div>
                         ) : (
-                          <div className="flex flex-col items-end">
-                            <span className="text-sm font-bold text-emerald-600">{formatCurrency(Math.abs(vendor.balance))}</span>
-                            <span className="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded mt-0.5 tracking-wider">Advance (جمع ہیں)</span>
+                          <div className="flex flex-col items-end whitespace-nowrap">
+                            <span className="text-sm font-bold text-emerald-600 whitespace-nowrap">{formatCurrency(Math.abs(vendor.balance))}</span>
+                            <span className="text-[10px] uppercase font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded mt-0.5 tracking-wider whitespace-nowrap">Advance (جمع ہیں)</span>
                           </div>
                         )}
                       </td>
 
                       {/* Actions */}
-                      <td className="py-4 px-4">
+                      <td className="py-4 px-4 whitespace-nowrap">
                         <div className="flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             title={isUrdu ? 'ادائیگی کریں (Payment)' : 'Make Payment'}

@@ -471,13 +471,19 @@ export default function ProductsPage() {
   return (
     <div className="space-y-6">
       {/* Top Banner & Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-emerald-950/80 via-emerald-900/50 to-slate-900 border border-emerald-800/40 p-6 rounded-2xl shadow-xl backdrop-blur-sm">
+      <div
+        style={{
+          background: 'linear-gradient(135deg, #0f3443 0%, #34e89e 100%)',
+          color: '#ffffff',
+        }}
+        className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl shadow-xl border border-white/10"
+      >
         <div>
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+            <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-white/20 text-emerald-100 border border-white/20">
               {isUrdu ? 'گودام و اسٹاک' : 'Warehouse & Inventory'}
             </span>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-emerald-100/80">
               {isUrdu ? 'کھاد، بیج اور اسپرے' : 'Fertilizers, Seeds & Chemicals'}
             </span>
           </div>
@@ -486,7 +492,7 @@ export default function ProductsPage() {
           >
             {isUrdu ? 'کھاد و زرعی ادویات اسٹاک مینجمنٹ' : 'Fertilizer & Agri Stock Inventory'}
           </h1>
-          <p className="text-sm text-slate-400 mt-1">
+          <p className="text-sm text-emerald-100/90 mt-1">
             {isUrdu
               ? 'گودام میں بوریوں کی تعداد، خرید و فروخت قیمت اور کم اسٹاک وارننگ کی لائیو تفصیل'
               : 'Track bag quantities, cost vs sale margins, godown rack locations, and reorder thresholds.'}
@@ -496,7 +502,7 @@ export default function ProductsPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold px-5 py-2.5 rounded-xl shadow-lg shadow-emerald-900/30 transition-all transform active:scale-95"
+            className="flex items-center gap-2 bg-white text-emerald-950 hover:bg-emerald-50 font-bold px-5 py-2.5 rounded-xl shadow-lg transition-all transform active:scale-95"
           >
             <span className="text-lg">+</span>
             <span className={isUrdu ? 'font-urdu' : ''}>
@@ -695,18 +701,18 @@ export default function ProductsPage() {
       {/* Main Products Table */}
       <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse whitespace-nowrap">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider">
-                <th className="py-3.5 px-4 min-w-[250px] text-blue-600">{isUrdu ? 'پروڈکٹ کا نام' : 'Product Name'}</th>
-                <th className="py-3.5 px-4 text-purple-600">{isUrdu ? 'کمپنی / برانڈ' : 'Company'}</th>
-                <th className="py-3.5 px-4 text-pink-600">{isUrdu ? 'پیکنگ / وزن' : 'Packing Unit'}</th>
-                <th className="py-3.5 px-4 text-rose-600">{isUrdu ? 'خرید قیمت' : 'Cost (خرید)'}</th>
-                <th className="py-3.5 px-4 text-emerald-600">{isUrdu ? 'فروخت قیمت' : 'Sale (فروخت)'}</th>
-                <th className="py-3.5 px-4 text-teal-600">{isUrdu ? 'منافع فی بوری' : 'Margin / Bag'}</th>
-                <th className="py-3.5 px-4 text-amber-600">{isUrdu ? 'موجودہ اسٹاک' : 'Stock Level'}</th>
-                <th className="py-3.5 px-4 text-indigo-600">{isUrdu ? 'گودام ریک' : 'Rack Location'}</th>
-                <th className="py-3.5 px-4 text-center text-slate-600">{isUrdu ? 'کارروائی' : 'Actions'}</th>
+              <tr className="bg-slate-50 border-b border-slate-200 text-xs font-bold uppercase tracking-wider whitespace-nowrap">
+                <th className="py-3.5 px-4 min-w-[250px] text-blue-600 whitespace-nowrap">{isUrdu ? 'پروڈکٹ کا نام' : 'Product Name'}</th>
+                <th className="py-3.5 px-4 text-purple-600 whitespace-nowrap">{isUrdu ? 'کمپنی / برانڈ' : 'Company'}</th>
+                <th className="py-3.5 px-4 text-pink-600 whitespace-nowrap">{isUrdu ? 'پیکنگ / وزن' : 'Packing Unit'}</th>
+                <th className="py-3.5 px-4 text-rose-600 whitespace-nowrap">{isUrdu ? 'خرید قیمت' : 'Cost (خرید)'}</th>
+                <th className="py-3.5 px-4 text-emerald-600 whitespace-nowrap">{isUrdu ? 'فروخت قیمت' : 'Sale (فروخت)'}</th>
+                <th className="py-3.5 px-4 text-teal-600 whitespace-nowrap">{isUrdu ? 'منافع فی بوری' : 'Margin / Bag'}</th>
+                <th className="py-3.5 px-4 text-amber-600 whitespace-nowrap">{isUrdu ? 'موجودہ اسٹاک' : 'Stock Level'}</th>
+                <th className="py-3.5 px-4 text-indigo-600 whitespace-nowrap">{isUrdu ? 'گودام ریک' : 'Rack Location'}</th>
+                <th className="py-3.5 px-4 text-center text-slate-600 whitespace-nowrap">{isUrdu ? 'کارروائی' : 'Actions'}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm">
