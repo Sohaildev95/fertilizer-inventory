@@ -585,18 +585,18 @@ export default function CustomersPage() {
   const formatCurrency = (amt: number) => `Rs. ${amt.toLocaleString()}`;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500">
       {/* ========================================================================= */}
       {/* 1. Header Section                                                         */}
       {/* ========================================================================= */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2.5">
-            <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-xl">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-emerald-100 text-emerald-800 rounded-xl flex-shrink-0 shadow-sm">
               <Users className="w-6 h-6" />
             </div>
             <div>
-              <h1 className={`text-2xl sm:text-3xl font-extrabold text-slate-900 ${isUrdu ? 'font-urdu' : ''}`}>
+              <h1 className={`text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight ${isUrdu ? 'font-urdu' : ''}`}>
                 {isUrdu ? 'زمیندار کھاتہ رجسٹر (کسٹمرز)' : 'Farmer Khata & Customers'}
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
@@ -608,29 +608,29 @@ export default function CustomersPage() {
           </div>
         </div>
 
-        {/* Header Action Buttons */}
-        <div className="flex flex-wrap items-center gap-2.5">
+        {/* Header Action Buttons - Guaranteed Single Row */}
+        <div className="flex items-center gap-2 sm:gap-2.5 flex-nowrap overflow-x-auto no-scrollbar py-0.5 flex-shrink-0">
           <button
             onClick={() => setIsReceivePaymentOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold shadow-sm shadow-blue-600/20 flex items-center gap-1.5 transition active:scale-95"
+            className="px-3.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold shadow-sm shadow-blue-600/20 flex items-center gap-1.5 transition active:scale-95 whitespace-nowrap flex-shrink-0"
           >
-            <ArrowDownLeft className="w-4 h-4" />
+            <ArrowDownLeft className="w-4 h-4 flex-shrink-0" />
             <span>{isUrdu ? 'وصولی درج کریں' : 'Receive Payment'}</span>
           </button>
 
           <button
             onClick={() => setIsAddDebitOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm font-semibold shadow-sm shadow-amber-600/20 flex items-center gap-1.5 transition active:scale-95"
+            className="px-3.5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm font-semibold shadow-sm shadow-amber-600/20 flex items-center gap-1.5 transition active:scale-95 whitespace-nowrap flex-shrink-0"
           >
-            <ArrowUpRight className="w-4 h-4" />
+            <ArrowUpRight className="w-4 h-4 flex-shrink-0" />
             <span>{isUrdu ? 'ادھار مال اندراج' : 'Issue Credit'}</span>
           </button>
 
           <button
             onClick={() => setIsAddFarmerOpen(true)}
-            className="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-sm shadow-emerald-600/20 flex items-center gap-1.5 transition active:scale-95"
+            className="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-sm shadow-emerald-600/20 flex items-center gap-1.5 transition active:scale-95 whitespace-nowrap flex-shrink-0"
           >
-            <PlusCircle className="w-4 h-4" />
+            <PlusCircle className="w-4 h-4 flex-shrink-0" />
             <span>{isUrdu ? 'نیا زمیندار رجسٹر کریں' : 'Add New Farmer'}</span>
           </button>
         </div>

@@ -120,7 +120,7 @@ export default function ReportsPage() {
   const formatCurrency = (amt: number) => `Rs. ${amt.toLocaleString()}`;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500">
       {/* 1. Header with Time Range Filter & Print Button */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
         <div className="flex items-center gap-3">

@@ -71,19 +71,14 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="fade-in" style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+    <div className="fade-in space-y-7">
       {/* Welcome Banner */}
       <div
         style={{
           background: 'linear-gradient(135deg, #064e3b 0%, #059669 100%)',
-          borderRadius: '20px',
-          padding: '28px 32px',
           color: '#ffffff',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          boxShadow: '0 10px 25px -5px rgba(5, 150, 105, 0.3)',
         }}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 sm:p-7 rounded-2xl shadow-xl border border-white/10"
       >
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
@@ -125,7 +120,7 @@ export default function DashboardPage() {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div className="flex items-center gap-3 self-start sm:self-auto flex-shrink-0">
           <Link
             href="/dashboard/pos"
             className="btn"
@@ -143,8 +138,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* KPI Cards Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px' }}>
+      {/* KPI Cards Grid - Fully Responsive across Mobile, Tablet, 1024, Full HD & 4K */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
         {stats.map((stat, idx) => {
           const Icon = stat.icon;
           return (
@@ -211,10 +206,10 @@ export default function DashboardPage() {
       {/* 4 Beautiful Animated Business Charts */}
       <DashboardCharts />
 
-      {/* Lower Section: 2 Columns */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.6fr 1.1fr', gap: '24px' }}>
+      {/* Lower Section: 2 Columns - Fully Responsive across Mobile, Tablet, 1024, Full HD & 4K */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Recent Counter Sales */}
-        <div className="glass-card" style={{ padding: '24px' }}>
+        <div className="lg:col-span-7 glass-card p-6">
           <div
             style={{
               display: 'flex',
@@ -240,7 +235,7 @@ export default function DashboardPage() {
           </div>
 
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
+            <table className="whitespace-nowrap" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px' }}>
               <thead>
                 <tr style={{ borderBottom: '2px solid #f1f5f9', color: '#64748b', fontSize: '12px' }}>
                   <th style={{ padding: '10px 8px' }}>{isUrdu ? 'بل نمبر' : 'Bill #'}</th>
@@ -286,7 +281,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Low Stock Alerts */}
-        <div className="glass-card" style={{ padding: '24px' }}>
+        <div className="lg:col-span-5 glass-card p-6">
           <div
             style={{
               display: 'flex',
