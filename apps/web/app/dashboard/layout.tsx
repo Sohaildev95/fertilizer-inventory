@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '../../lib/auth-context';
@@ -67,9 +67,35 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const roleInfo = getRoleDetails(profile?.role);
 
+  // Auto-close mobile/tablet drawer when tab/route changes
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
+  // Close drawer on Escape key press
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSidebarOpen(false);
+      }
+    };
+    if (sidebarOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [sidebarOpen]);
+
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', backgroundColor: '#f8fafc' }}>
-      {/* Sidebar */}
+    <div className="flex h-screen w-full bg-[#f8fafc] overflow-hidden">
+      {/* Mobile Backdrop Overlay */}
+      {sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-40 lg:hidden transition-opacity"
+        />
+      )}
+
+      {/* Sidebar - Desktop Fixed / Mobile Slide-in Drawer */}
       <aside
         style={{
           width: '280px',
@@ -78,14 +104,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           display: 'flex',
           flexDirection: 'column',
           borderInlineEnd: '1px solid rgba(255, 255, 255, 0.1)',
-          position: 'sticky',
-          top: 0,
           height: '100vh',
-          maxHeight: '100vh',
-          zIndex: 40,
+          zIndex: 50,
           flexShrink: 0,
           overflow: 'hidden',
         }}
+        className={`fixed lg:static inset-y-0 start-0 h-screen transition-transform duration-300 ease-in-out ${
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
       >
         {/* Top Brand (Pinned) */}
         <div
@@ -94,40 +120,56 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             padding: '20px 18px',
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'space-between',
             gap: '12px',
             borderBottom: '1px solid rgba(255, 255, 255, 0.08)',
           }}
         >
-          <div
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '12px',
-              background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)',
-              flexShrink: 0,
-            }}
+          <Link
+            href="/dashboard"
+            onClick={() => setSidebarOpen(false)}
+            style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden', textDecoration: 'none' }}
           >
-            <Sprout size={22} color="#ffffff" />
-          </div>
-          <div style={{ overflow: 'hidden' }}>
-            <h2
+            <div
               style={{
-                fontSize: '15px',
-                fontWeight: '800',
-                color: '#ffffff',
-                whiteSpace: 'nowrap',
-                textOverflow: 'ellipsis',
-                overflow: 'hidden',
+                width: '40px',
+                height: '40px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                boxShadow: '0 4px 12px rgba(16, 185, 129, 0.4)',
+                flexShrink: 0,
               }}
             >
-              {profile?.shop_name || 'Kissan Fertilizer'}
-            </h2>
-            <p style={{ fontSize: '11px', color: '#6ee7b7' }}>انوینٹری اور سیلز سسٹم</p>
-          </div>
+              <Sprout size={22} color="#ffffff" />
+            </div>
+            <div style={{ overflow: 'hidden' }}>
+              <h2
+                style={{
+                  fontSize: '15px',
+                  fontWeight: '800',
+                  color: '#ffffff',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                }}
+              >
+                {profile?.shop_name || 'Kissan Fertilizer'}
+              </h2>
+              <p style={{ fontSize: '11px', color: '#6ee7b7' }}>انوینٹری اور سیلز سسٹم</p>
+            </div>
+          </Link>
+
+          {/* Close Button on Mobile Drawer */}
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="lg:hidden p-1.5 rounded-lg text-emerald-200 hover:text-white hover:bg-emerald-800/60 transition"
+            title="Close Menu"
+          >
+            <X size={20} />
+          </button>
         </div>
 
         {/* Navigation Items (Scrollable inner area) */}
@@ -150,6 +192,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => setSidebarOpen(false)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -278,60 +321,52 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       </aside>
 
       {/* Main Content Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
+      <div className="flex-1 flex flex-col h-screen min-w-0 overflow-hidden">
         {/* Top Header */}
-        <header
-          style={{
-            height: '70px',
-            backgroundColor: '#ffffff',
-            borderBottom: '1px solid #e2e8f0',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '0 32px',
-            position: 'sticky',
-            top: 0,
-            zIndex: 30,
-          }}
-        >
-          {/* Left: System Status / Store Title */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <span
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: '#10b981',
-                boxShadow: '0 0 0 3px rgba(16, 185, 129, 0.25)',
-              }}
-            />
-            <span
-              style={{
-                fontSize: '13px',
-                fontWeight: '600',
-                color: '#64748b',
-                letterSpacing: '0.01em',
-              }}
-              className={isUrdu ? 'font-urdu' : ''}
+        <header className="h-[70px] flex-shrink-0 bg-white border-b border-slate-200 flex items-center justify-between px-3 sm:px-6 lg:px-8 z-30">
+          {/* Left: Mobile Drawer Trigger + System Title */}
+          <div className="flex items-center gap-2.5">
+            {/* Hamburger Button on Mobile/Tablet (< 1024px) */}
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="lg:hidden p-2 -ml-1 rounded-xl text-slate-700 hover:bg-slate-100 transition active:scale-95"
+              title="Open Navigation Menu"
             >
-              {isUrdu ? 'کھاد انوینٹری و کاؤنٹر سیلنگ سسٹم (آن لائن)' : 'Fertilizer POS & Inventory Portal'}
-            </span>
+              <Menu size={22} />
+            </button>
+
+            <div className="hidden sm:flex items-center gap-2.5">
+              <span
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  backgroundColor: '#10b981',
+                  boxShadow: '0 0 0 3px rgba(16, 185, 129, 0.25)',
+                }}
+              />
+              <span
+                style={{
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  color: '#64748b',
+                  letterSpacing: '0.01em',
+                }}
+                className={isUrdu ? 'font-urdu' : ''}
+              >
+                {isUrdu ? 'کھاد انوینٹری و کاؤنٹر سیلنگ سسٹم (آن لائن)' : 'Fertilizer POS & Inventory Portal'}
+              </span>
+            </div>
           </div>
 
           {/* Quick Actions & Language Toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-            {/* Active User Role Badge */}
+          <div className="flex items-center gap-2 sm:gap-3.5">
+            {/* Active User Role Badge (Hidden on mobile) */}
             <div
+              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '5px 12px',
-                borderRadius: '999px',
                 backgroundColor: roleInfo.bg,
                 border: `1px solid ${roleInfo.border}40`,
-                fontSize: '12px',
-                fontWeight: '700',
                 color: roleInfo.color,
               }}
             >
@@ -344,29 +379,29 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* Language Switcher */}
             <LanguageToggle />
 
+            {/* Quick POS Bill Button */}
             <Link
               href="/dashboard/pos"
-              className="btn btn-primary"
-              style={{ padding: '8px 16px', fontSize: '13px' }}
+              className="btn btn-primary px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm active:scale-95 whitespace-nowrap"
             >
-              <ShoppingCart size={16} />
-              <span>{isUrdu ? 'نیا بل (پرچی)' : 'New POS Bill'}</span>
+              <ShoppingCart size={15} />
+              <span>{isUrdu ? 'نیا بل' : 'POS Bill'}</span>
             </Link>
 
+            {/* Stock In Button (Hidden on small mobile) */}
             <Link
               href="/dashboard/purchases/new"
-              className="btn btn-secondary"
-              style={{ padding: '8px 16px', fontSize: '13px' }}
+              className="hidden sm:inline-flex btn btn-secondary px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold items-center gap-1.5 shadow-sm active:scale-95 whitespace-nowrap"
             >
-              <PlusCircle size={16} />
+              <PlusCircle size={15} />
               <span>{isUrdu ? 'مال خریداری' : 'Stock In'}</span>
             </Link>
 
             {/* Notification Bell */}
             <div
               style={{
-                width: '40px',
-                height: '40px',
+                width: '38px',
+                height: '38px',
                 borderRadius: '10px',
                 border: '1px solid #e2e8f0',
                 display: 'flex',
@@ -376,15 +411,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 cursor: 'pointer',
                 background: '#ffffff',
               }}
+              className="hover:bg-slate-50 transition flex-shrink-0"
             >
-              <Bell size={18} color="#64748b" />
+              <Bell size={17} color="#64748b" />
               <span
                 style={{
                   position: 'absolute',
                   top: '8px',
                   right: '8px',
-                  width: '8px',
-                  height: '8px',
+                  width: '7px',
+                  height: '7px',
                   borderRadius: '50%',
                   backgroundColor: '#ef4444',
                 }}
@@ -393,8 +429,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
         </header>
 
-        {/* Dynamic Page Content */}
-        <main style={{ padding: '32px', flex: 1 }}>{children}</main>
+        {/* Dynamic Page Content - Scrollable Inner Area */}
+        <main className="flex-1 overflow-y-auto overflow-x-hidden p-3.5 sm:p-6 lg:p-8 custom-scrollbar">
+          <div className="w-full max-w-[1920px] mx-auto min-w-0">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );

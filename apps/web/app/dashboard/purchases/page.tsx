@@ -286,7 +286,7 @@ export default function PurchasesPage() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-500">
       {/* Top Banner & Header */}
       <div
         style={{
