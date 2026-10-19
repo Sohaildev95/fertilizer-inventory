@@ -1989,7 +1989,7 @@ export default function CustomersPage() {
       </Dialog>
 
       {/* Print Specific CSS Rules */}
-      <style jsx global>{`
+      <style>{`
         @media print {
           body * {
             visibility: hidden !important;

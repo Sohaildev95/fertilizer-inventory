@@ -14,12 +14,44 @@ import { VendorsService } from './vendors.service.js';
 import { CreateVendorDto } from './dto/create-vendor.dto.js';
 import { QueryVendorsDto } from './dto/query-vendors.dto.js';
 import { CreateVendorPaymentDto } from './dto/create-vendor-payment.dto.js';
+import { VendorPriceUpdateDto, VendorDispatchNoticeDto } from './dto/vendor-portal.dto.js';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard.js';
 
 @ApiTags('vendors')
 @Controller('vendors')
 export class VendorsController {
   constructor(private readonly vendorsService: VendorsService) {}
+
+  @Get('portal/dashboard')
+  @ApiOperation({ summary: 'Get Vendor Self-Service Portal dashboard & live metrics' })
+  @ApiResponse({ status: 200, description: 'Vendor portal data returned' })
+  getPortalDashboard(@Query('vendorId') vendorId?: string) {
+    return this.vendorsService.getPortalDashboard(vendorId);
+  }
+
+  @Post('portal/:id/price-update')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Submit vendor price change notification to shop' })
+  @ApiResponse({ status: 201, description: 'Price notification recorded' })
+  submitPriceUpdate(
+    @Param('id') id: string,
+    @Body() dto: VendorPriceUpdateDto,
+  ) {
+    return this.vendorsService.submitPriceUpdate(id, dto);
+  }
+
+  @Post('portal/:id/dispatch-notice')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Submit vendor truck advance dispatch notice' })
+  @ApiResponse({ status: 201, description: 'Dispatch notice recorded' })
+  submitDispatchNotice(
+    @Param('id') id: string,
+    @Body() dto: VendorDispatchNoticeDto,
+  ) {
+    return this.vendorsService.submitDispatchNotice(id, dto);
+  }
 
   @Get('stats/summary')
   @ApiOperation({ summary: 'Get total payable, advance, and vendor summary stats' })

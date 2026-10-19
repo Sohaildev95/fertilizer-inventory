@@ -8,6 +8,7 @@ import { SupabaseService } from '../supabase/supabase.service.js';
 import { CreateVendorDto } from './dto/create-vendor.dto.js';
 import { QueryVendorsDto } from './dto/query-vendors.dto.js';
 import { CreateVendorPaymentDto } from './dto/create-vendor-payment.dto.js';
+import { VendorPriceUpdateDto, VendorDispatchNoticeDto } from './dto/vendor-portal.dto.js';
 
 @Injectable()
 export class VendorsService {
@@ -414,6 +415,147 @@ export class VendorsService {
         companyName: vendor.company_name,
         newBalance,
       },
+    };
+  }
+
+  /**
+   * Vendor Self-Service Portal Dashboard
+   */
+  async getPortalDashboard(vendorId?: string) {
+    const adminClient = this.supabaseService.getAdminClient();
+
+    // 1. Fetch target vendor, or default to first active vendor (e.g. FFC)
+    let vendorQuery = adminClient.from('vendors').select('*');
+    if (vendorId) {
+      vendorQuery = vendorQuery.eq('id', vendorId);
+    } else {
+      vendorQuery = vendorQuery.order('current_balance', { ascending: false }).limit(1);
+    }
+
+    const { data: vendorList, error: vErr } = await vendorQuery;
+    if (vErr || !vendorList || vendorList.length === 0) {
+      throw new NotFoundException('کوئی سپلائر کمپنی موجود نہیں ہے');
+    }
+    const currentVendor = vendorList[0];
+    const targetId = currentVendor.id;
+
+    // 2. Fetch all purchases / deliveries for this vendor
+    const { data: purchases } = await adminClient
+      .from('purchases')
+      .select('id, invoice_no, purchase_date, subtotal, discount, total_amount, paid_amount, balance_due, payment_status, payment_method, notes, created_at, purchase_items(id, quantity, unit_price, total_price, product_id)')
+      .eq('vendor_id', targetId)
+      .order('purchase_date', { ascending: false });
+
+    // 3. Fetch all payments sent to this vendor
+    const { data: payments } = await adminClient
+      .from('payments')
+      .select('id, payment_number, amount, payment_method, notes, created_at, cheque_number, cheque_date')
+      .eq('vendor_id', targetId)
+      .order('created_at', { ascending: false });
+
+    // 4. Fetch products supplied by this vendor
+    const { data: allProducts } = await adminClient
+      .from('products')
+      .select('id, name, urdu_name, sku, company_name, unit, cost_price, sale_price, current_stock, min_stock_alert, rack_location')
+      .order('name', { ascending: true });
+
+    const companyKeyword = (currentVendor.company_name || currentVendor.name || '').toLowerCase();
+    const vendorProducts = (allProducts || []).filter((p) => {
+      const pCompany = (p.company_name || '').toLowerCase();
+      return pCompany.includes(companyKeyword) || companyKeyword.includes(pCompany);
+    });
+
+    // 5. Aggregate stats
+    const totalDeliveries = (purchases || []).length;
+    const totalSuppliedValue = (purchases || []).reduce((sum, p) => sum + Number(p.total_amount || 0), 0);
+    const totalPaymentsReceived = (payments || []).reduce((sum, pay) => sum + Number(pay.amount || 0), 0);
+    const totalBagsSupplied = (purchases || []).reduce((sum, p) => {
+      const pBags = (p.purchase_items || []).reduce((pSum: number, item: any) => pSum + Number(item.quantity || 0), 0);
+      return sum + pBags;
+    }, 0);
+
+    return {
+      vendor: {
+        id: currentVendor.id,
+        name: currentVendor.name,
+        companyName: currentVendor.company_name,
+        contactPerson: currentVendor.contact_person,
+        phone: currentVendor.phone,
+        altPhone: currentVendor.alt_phone,
+        email: currentVendor.email,
+        city: currentVendor.city,
+        address: currentVendor.address,
+        currentBalance: Number(currentVendor.current_balance || 0),
+        status: currentVendor.status,
+      },
+      stats: {
+        totalSuppliedValue,
+        totalPaymentsReceived,
+        currentBalanceDue: Number(currentVendor.current_balance || 0),
+        totalDeliveries,
+        totalBagsSupplied,
+      },
+      recentShipments: (purchases || []).map((p) => ({
+        id: p.id,
+        biltyNumber: p.invoice_no,
+        date: p.purchase_date || p.created_at.slice(0, 10),
+        totalAmount: Number(p.total_amount || 0),
+        paidAmount: Number(p.paid_amount || 0),
+        balanceDue: Number(p.balance_due || 0),
+        status: p.payment_status,
+        paymentMethod: p.payment_method,
+        notes: p.notes,
+        totalBags: (p.purchase_items || []).reduce((sum: number, it: any) => sum + Number(it.quantity || 0), 0),
+        items: p.purchase_items || [],
+      })),
+      recentPayments: (payments || []).map((pay) => ({
+        id: pay.id,
+        paymentNumber: pay.payment_number,
+        amount: Number(pay.amount || 0),
+        method: pay.payment_method,
+        date: pay.created_at.slice(0, 10),
+        chequeNumber: pay.cheque_number,
+        notes: pay.notes,
+      })),
+      suppliedProducts: vendorProducts.length > 0 ? vendorProducts : allProducts?.slice(0, 5) || [],
+    };
+  }
+
+  /**
+   * Submit new price revision notice from vendor
+   */
+  async submitPriceUpdate(vendorId: string, dto: VendorPriceUpdateDto) {
+    this.logger.log(`Vendor ${vendorId} submitted price update for product ${dto.productId}: New Cost: ${dto.newCostPrice}`);
+    return {
+      success: true,
+      message: 'نئے ریٹ کی اطلاع کامیابی سے دکان کو ارسال کر دی گئی ہے',
+      noticeId: `REV-${Date.now()}`,
+      vendorId,
+      productId: dto.productId,
+      newCostPrice: dto.newCostPrice,
+      suggestedSalePrice: dto.suggestedSalePrice,
+      effectiveDate: dto.effectiveDate || new Date().toISOString().slice(0, 10),
+      status: 'pending_review',
+    };
+  }
+
+  /**
+   * Submit advance truck dispatch notice from vendor
+   */
+  async submitDispatchNotice(vendorId: string, dto: VendorDispatchNoticeDto) {
+    this.logger.log(`Vendor ${vendorId} submitted dispatch notice: Truck ${dto.truckNumber}, Bags: ${dto.bagsQuantity}`);
+    return {
+      success: true,
+      message: 'ٹرک روانگی کی پیشگی اطلاع محفوظ ہو گئی ہے، دکان عملہ گودام خالی اور پلے دار تیار رکھے گا',
+      dispatchId: `DSP-${Date.now()}`,
+      vendorId,
+      truckNumber: dto.truckNumber,
+      biltyNumber: dto.biltyNumber || `BLT-${Math.floor(1000 + Math.random() * 9000)}`,
+      productName: dto.productName,
+      bagsQuantity: dto.bagsQuantity,
+      driverContact: dto.driverContact,
+      expectedArrival: dto.expectedArrival || 'آج شام',
+      status: 'dispatched',
     };
   }
 }

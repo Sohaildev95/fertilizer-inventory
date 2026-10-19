@@ -22,6 +22,7 @@ import {
   Bell,
   Shield,
   ChevronDown,
+  BookOpen,
 } from 'lucide-react';
 import { useLanguage } from '../../lib/language-context';
 import { LanguageToggle } from '../../components/language-toggle';
@@ -43,6 +44,7 @@ const navItems: NavItem[] = [
   { name: 'Vendors (Suppliers)', urduName: 'سپلائرز و کمپنیاں', href: '/dashboard/vendors', icon: Building2 },
   { name: 'Daily Expenses', urduName: 'روزانہ کا خرچہ', href: '/dashboard/expenses', icon: DollarSign },
   { name: 'Reports & Profit', urduName: 'نفع و نقصان رپورٹس', href: '/dashboard/reports', icon: FileBarChart2 },
+  { name: 'User Manual & Guide', urduName: 'رہنمائی و یوزر مینوئل', href: '/dashboard/guide', icon: BookOpen, badge: 'GUIDE' },
 ];
 
 const getRoleDetails = (role?: string) => {
@@ -378,6 +380,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
             {/* Language Switcher */}
             <LanguageToggle />
+
+            {/* User Manual Guide Button */}
+            <Link
+              href="/dashboard/guide"
+              className="px-2.5 sm:px-3 py-1.5 rounded-lg border border-emerald-600/30 text-emerald-800 bg-emerald-50 hover:bg-emerald-100 text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition active:scale-95 whitespace-nowrap shadow-xs"
+              title="User Manual Guide / مینوئل گائیڈ"
+            >
+              <BookOpen size={15} className="text-emerald-700" />
+              <span className="hidden sm:inline font-medium" suppressHydrationWarning>{isUrdu ? 'مینوئل' : 'Guide'}</span>
+            </Link>
 
             {/* Quick POS Bill Button */}
             <Link

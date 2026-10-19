@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../lib/auth-context';
 
-export default function Home() {
+export default function Home(): React.ReactNode {
   const router = useRouter();
   const { user, isLoading } = useAuth();
 

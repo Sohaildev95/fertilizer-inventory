@@ -1,10 +1,12 @@
 'use client';
 
 import React, { useState, useMemo, useEffect } from 'react';
+import Link from 'next/link';
 import { useLanguage } from '../../../lib/language-context';
 import { apiRequest } from '../../../lib/api-client';
 import {
   Building2,
+  Truck,
   Phone,
   MapPin,
   Search,
@@ -355,13 +357,23 @@ export default function VendorsPage() {
           </div>
         </div>
 
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm shadow-emerald-600/20 flex items-center gap-2 transition active:scale-95 flex-shrink-0"
-        >
-          <PlusCircle className="w-4 h-4 flex-shrink-0" />
-          <span>{isUrdu ? 'نیا سپلائر شامل کریں' : 'Add New Vendor'}</span>
-        </button>
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <Link
+            href="/dashboard/vendors/portal"
+            className="bg-purple-700 hover:bg-purple-800 text-white px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm shadow-purple-700/20 flex items-center gap-2 transition active:scale-95 flex-shrink-0"
+          >
+            <Truck className="w-4 h-4 flex-shrink-0" />
+            <span>{isUrdu ? 'سپلائر پورٹل کھولیں' : 'Open Vendor Portal'}</span>
+          </Link>
+
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold shadow-sm shadow-emerald-600/20 flex items-center gap-2 transition active:scale-95 flex-shrink-0"
+          >
+            <PlusCircle className="w-4 h-4 flex-shrink-0" />
+            <span>{isUrdu ? 'نیا سپلائر شامل کریں' : 'Add New Vendor'}</span>
+          </button>
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -1055,7 +1067,7 @@ export default function VendorsPage() {
       </Dialog>
 
       {/* Print Specific CSS Rules */}
-      <style jsx global>{`
+      <style>{`
         @media print {
           body * {
             visibility: hidden !important;

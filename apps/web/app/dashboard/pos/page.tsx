@@ -588,7 +588,7 @@ export default function POSPage() {
   return (
     <div className="space-y-4 animate-in fade-in duration-500 pb-10">
       {/* Print Specific CSS Rules (80mm & 58mm Thermal Rolls) */}
-      <style jsx global>{`
+      <style>{`
         @media print {
           body * {
             visibility: hidden !important;
