@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useLanguage } from '../../../lib/language-context';
+import { apiRequest } from '../../../lib/api-client';
 import {
   Users,
   Phone,
@@ -27,6 +28,7 @@ import {
   CreditCard,
   Receipt,
   BadgeAlert,
+  Loader2,
 } from 'lucide-react';
 import {
   Select,
@@ -294,15 +296,30 @@ const AVAILABLE_FERTILIZERS = [
 export default function CustomersPage() {
   const { isUrdu } = useLanguage();
   const [customers, setCustomers] = useState<CustomerFarmer[]>(INITIAL_CUSTOMERS);
+  const [availableProducts, setAvailableProducts] = useState(AVAILABLE_FERTILIZERS);
   const [search, setSearch] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterVillage, setFilterVillage] = useState('all');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Modals
   const [isAddFarmerOpen, setIsAddFarmerOpen] = useState(false);
   const [isReceivePaymentOpen, setIsReceivePaymentOpen] = useState(false);
   const [isAddDebitOpen, setIsAddDebitOpen] = useState(false);
   const [selectedFarmer, setSelectedFarmer] = useState<CustomerFarmer | null>(null);
+
+  // Wasooli Thermal Receipt Modal
+  const [wasooliReceipt, setWasooliReceipt] = useState<any>(null);
+  const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
+
+  // Server KPI stats
+  const [apiStats, setApiStats] = useState<{
+    totalCount: number;
+    totalUdhar: number;
+    overLimitCount: number;
+    todayRecovery: number;
+  } | null>(null);
 
   // Form State: Add Farmer
   const [farmerForm, setFarmerForm] = useState({
@@ -341,24 +358,111 @@ export default function CustomersPage() {
     notes: '',
   });
 
+  // Load live data from Backend API
+  const loadCustomers = async () => {
+    setIsLoading(true);
+    try {
+      const res = await apiRequest<{ data: any[] }>('/customers?limit=100');
+      if (res?.data && res.data.length > 0) {
+        setCustomers(
+          res.data.map((c) => ({
+            id: c.id,
+            name: c.name,
+            fatherName: c.notes?.match(/ولد:\s*([^|•]+)/)?.[1]?.trim() || 'محمد خان',
+            phone: c.phone,
+            cnic: c.cnic || '36502-xxxxxxx-x',
+            village: c.village || 'چک لوکل',
+            landAcreage: 25,
+            currentCrop: 'گندم و مکئی',
+            guarantor: c.notes?.match(/ضمانتی:\s*([^|•]+)/)?.[1]?.trim() || 'ذاتی ضمانت',
+            guarantorPhone: c.alt_phone || undefined,
+            creditLimit: Number(c.credit_limit || 500000),
+            balance: Number(c.current_balance || 0),
+            dueDate: 'فصل کٹائی (وعدہ ادائیگی)',
+            status:
+              Number(c.current_balance || 0) > Number(c.credit_limit || 500000)
+                ? 'over_limit'
+                : 'active',
+            transactions: [],
+          })),
+        );
+      }
+
+      const statsRes = await apiRequest<{
+        totalCount: number;
+        totalUdhar: number;
+        overLimitCount: number;
+        todayRecovery: number;
+      }>('/customers/stats/summary');
+      if (statsRes) {
+        setApiStats(statsRes);
+      }
+
+      const prodRes = await apiRequest<{ data: any[] }>('/products?limit=100');
+      if (prodRes?.data && prodRes.data.length > 0) {
+        setAvailableProducts(
+          prodRes.data.map((p) => ({
+            id: p.id,
+            name: `${p.urdu_name || p.name} (${p.company_name})`,
+            price: Number(p.sale_price || 0),
+          })),
+        );
+      }
+    } catch (err) {
+      console.warn('API error, using initial records:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadCustomers();
+  }, []);
+
+  // Fetch full ledger when farmer selected
+  const openFarmerLedger = async (farmer: CustomerFarmer) => {
+    setSelectedFarmer(farmer);
+    try {
+      const ledgerRes = await apiRequest(`/customers/${farmer.id}/ledger`);
+      if (ledgerRes?.transactions) {
+        setSelectedFarmer((prev) =>
+          prev
+            ? {
+                ...prev,
+                balance: Number(ledgerRes.customer.current_balance ?? prev.balance),
+                transactions: ledgerRes.transactions,
+              }
+            : null,
+        );
+      }
+    } catch (err) {
+      console.warn('Ledger fetch failed, using fallback:', err);
+    }
+  };
+
   // KPI Calculations
   const totalMarketUdhar = useMemo(() => {
+    if (apiStats) return apiStats.totalUdhar;
     return customers.reduce((sum, c) => sum + Math.max(0, c.balance), 0);
-  }, [customers]);
+  }, [customers, apiStats]);
 
   const totalOverLimitCount = useMemo(() => {
+    if (apiStats) return apiStats.overLimitCount;
     return customers.filter((c) => c.balance > c.creditLimit).length;
-  }, [customers]);
+  }, [customers, apiStats]);
 
-  const totalRegisteredFarmers = customers.length;
+  const totalRegisteredFarmers = useMemo(() => {
+    if (apiStats) return apiStats.totalCount;
+    return customers.length;
+  }, [customers, apiStats]);
 
   const totalCollectedRecent = useMemo(() => {
-    // Total credits from transactions
+    if (apiStats) return apiStats.todayRecovery;
     return customers.reduce(
       (sum, c) => sum + c.transactions.reduce((tSum, t) => tSum + t.credit, 0),
-      0
+      0,
     );
-  }, [customers]);
+  }, [customers, apiStats]);
 
   // Unique villages for filter
   const uniqueVillages = useMemo(() => {
@@ -395,157 +499,232 @@ export default function CustomersPage() {
   }, [customers, search, filterVillage, filterStatus]);
 
   // Handlers
-  const handleSaveNewFarmer = (e: React.FormEvent) => {
+  const handleSaveNewFarmer = async (e: React.FormEvent) => {
     e.preventDefault();
     const limit = Number(farmerForm.creditLimit) || 500000;
     const initialBalance = Number(farmerForm.openingBalance) || 0;
-    const newId = `cst-${Date.now()}`;
 
-    const newFarmer: CustomerFarmer = {
-      id: newId,
-      name: farmerForm.name,
-      fatherName: farmerForm.fatherName,
-      phone: farmerForm.phone,
-      cnic: farmerForm.cnic || '36502-xxxxxxx-x',
-      village: farmerForm.village || 'چک لوکل',
-      landAcreage: Number(farmerForm.landAcreage) || 10,
-      currentCrop: farmerForm.currentCrop,
-      guarantor: farmerForm.guarantor || 'ذاتی ضمانت',
-      guarantorPhone: farmerForm.guarantorPhone,
-      creditLimit: limit,
-      balance: initialBalance,
-      dueDate: farmerForm.dueDate || 'فصل کٹائی',
-      status: initialBalance > limit ? 'over_limit' : 'active',
-      transactions:
-        initialBalance > 0
-          ? [
-              {
-                id: `tx-${Date.now()}`,
-                date: new Date().toISOString().slice(0, 10),
-                description: 'سابقہ اوپننگ بیلنس',
-                biltyOrSlipNo: 'OP-NEW',
-                debit: initialBalance,
-                credit: 0,
-                balance: initialBalance,
-              },
-            ]
-          : [],
-    };
+    setIsSubmitting(true);
+    try {
+      const res = await apiRequest('/customers', {
+        method: 'POST',
+        body: JSON.stringify({
+          name: farmerForm.name.trim(),
+          phone: farmerForm.phone.trim(),
+          altPhone: farmerForm.guarantorPhone.trim() || undefined,
+          cnic: farmerForm.cnic.trim() || undefined,
+          village: farmerForm.village.trim() || undefined,
+          creditLimit: limit,
+          currentBalance: initialBalance,
+          notes: `ولد: ${farmerForm.fatherName || 'محمد خان'} | فصل: ${farmerForm.currentCrop} | ضمانتی: ${farmerForm.guarantor || 'ذاتی'}`,
+        }),
+      });
 
-    setCustomers([newFarmer, ...customers]);
-    setIsAddFarmerOpen(false);
-    // Reset Form
-    setFarmerForm({
-      name: '',
-      fatherName: '',
-      phone: '',
-      cnic: '',
-      village: '',
-      landAcreage: '',
-      currentCrop: 'گندم (Wheat)',
-      guarantor: '',
-      guarantorPhone: '',
-      creditLimit: '500000',
-      openingBalance: '0',
-      dueDate: '',
-    });
+      const newFarmer: CustomerFarmer = {
+        id: res.id,
+        name: res.name,
+        fatherName: farmerForm.fatherName || 'محمد خان',
+        phone: res.phone,
+        cnic: res.cnic || '36502-xxxxxxx-x',
+        village: res.village || 'چک لوکل',
+        landAcreage: Number(farmerForm.landAcreage) || 10,
+        currentCrop: farmerForm.currentCrop,
+        guarantor: farmerForm.guarantor || 'ذاتی ضمانت',
+        guarantorPhone: farmerForm.guarantorPhone,
+        creditLimit: limit,
+        balance: initialBalance,
+        dueDate: farmerForm.dueDate || 'فصل کٹائی',
+        status: initialBalance > limit ? 'over_limit' : 'active',
+        transactions: [],
+      };
+
+      setCustomers((prev) => [newFarmer, ...prev]);
+      setIsAddFarmerOpen(false);
+      setFarmerForm({
+        name: '',
+        fatherName: '',
+        phone: '',
+        cnic: '',
+        village: '',
+        landAcreage: '',
+        currentCrop: 'گندم (Wheat)',
+        guarantor: '',
+        guarantorPhone: '',
+        creditLimit: '500000',
+        openingBalance: '0',
+        dueDate: '',
+      });
+    } catch (err: any) {
+      alert(`کسان رجسٹر کرنے میں خرابی: ${err?.message || 'Error creating farmer'}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleSavePayment = (e: React.FormEvent) => {
+  const handleSavePayment = async (e: React.FormEvent) => {
     e.preventDefault();
     const amount = Number(paymentForm.amount);
     if (!amount || !paymentForm.customerId) return;
 
-    setCustomers((prev) =>
-      prev.map((c) => {
-        if (c.id === paymentForm.customerId) {
-          const newBal = c.balance - amount;
-          const newTx: KhataTransaction = {
-            id: `tx-${Date.now()}`,
-            date: paymentForm.date || new Date().toISOString().slice(0, 10),
-            description: paymentForm.notes
-              ? `وصولی: ${paymentForm.notes}`
-              : `نقد وصولی (${paymentForm.paymentMethod === 'bank_transfer' ? 'بینک ٹرانسفر' : 'کاؤنٹر کیش'})`,
-            biltyOrSlipNo: paymentForm.receiptNo,
-            debit: 0,
-            credit: amount,
-            balance: newBal,
-            paymentMethod: paymentForm.paymentMethod,
-          };
-          const updated = {
-            ...c,
-            balance: newBal,
-            status: (newBal > c.creditLimit ? 'over_limit' : 'active') as any,
-            transactions: [...c.transactions, newTx],
-          };
-          if (selectedFarmer?.id === c.id) {
-            setSelectedFarmer(updated);
-          }
-          return updated;
-        }
-        return c;
-      })
-    );
+    const targetCustomer = customers.find((c) => c.id === paymentForm.customerId);
 
-    setIsReceivePaymentOpen(false);
-    setPaymentForm({
-      customerId: '',
-      amount: '',
-      date: new Date().toISOString().slice(0, 10),
-      paymentMethod: 'cash',
-      receiptNo: `REC-${Math.floor(100 + Math.random() * 900)}`,
-      notes: '',
-    });
+    setIsSubmitting(true);
+    try {
+      const res = await apiRequest(`/customers/${paymentForm.customerId}/payments`, {
+        method: 'POST',
+        body: JSON.stringify({
+          amount: amount,
+          paymentMethod: paymentForm.paymentMethod,
+          notes: paymentForm.notes.trim() || undefined,
+        }),
+      });
+
+      const newBal = res.newBalance ?? (targetCustomer ? targetCustomer.balance - amount : 0);
+      const receiptNo = res.receiptNo || paymentForm.receiptNo;
+
+      const newTx: KhataTransaction = {
+        id: `tx-${Date.now()}`,
+        date: paymentForm.date || new Date().toISOString().slice(0, 10),
+        description: paymentForm.notes
+          ? `وصولی: ${paymentForm.notes}`
+          : `نقد وصولی (${paymentForm.paymentMethod === 'bank_transfer' ? 'بینک ٹرانسفر' : 'کاؤنٹر کیش'})`,
+        biltyOrSlipNo: receiptNo,
+        debit: 0,
+        credit: amount,
+        balance: newBal,
+        paymentMethod: paymentForm.paymentMethod,
+      };
+
+      setCustomers((prev) =>
+        prev.map((c) => {
+          if (c.id === paymentForm.customerId) {
+            return {
+              ...c,
+              balance: newBal,
+              status: (newBal > c.creditLimit ? 'over_limit' : 'active') as any,
+              transactions: [...c.transactions, newTx],
+            };
+          }
+          return c;
+        }),
+      );
+
+      // Setup receipt data for thermal print
+      const now = new Date();
+      setWasooliReceipt({
+        receiptNo,
+        farmerName: targetCustomer?.name || 'کھاتے دار کسان',
+        village: targetCustomer?.village || '',
+        amount: amount,
+        oldBalance: res.oldBalance ?? (targetCustomer?.balance || 0),
+        newBalance: newBal,
+        date: now.toLocaleDateString('en-GB'),
+        time: now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+        paymentMethod:
+          paymentForm.paymentMethod === 'bank_transfer'
+            ? 'بینک آن لائن'
+            : paymentForm.paymentMethod === 'cheque'
+            ? 'بینک چیک'
+            : 'نقد کاؤنٹر',
+        notes: paymentForm.notes,
+      });
+
+      setIsReceivePaymentOpen(false);
+      setIsReceiptModalOpen(true);
+
+      setPaymentForm({
+        customerId: '',
+        amount: '',
+        date: new Date().toISOString().slice(0, 10),
+        paymentMethod: 'cash',
+        receiptNo: `REC-${Math.floor(100 + Math.random() * 900)}`,
+        notes: '',
+      });
+    } catch (err: any) {
+      alert(`رقم وصولی درج کرنے میں خرابی: ${err?.message || 'Error recording payment'}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  const handleSaveDebit = (e: React.FormEvent) => {
+  const handleSaveDebit = async (e: React.FormEvent) => {
     e.preventDefault();
     const qty = Number(debitForm.quantity) || 1;
     const rate = Number(debitForm.unitPrice) || 0;
     const totalAmount = qty * rate;
     if (!totalAmount || !debitForm.customerId) return;
 
-    const prod = AVAILABLE_FERTILIZERS.find((p) => p.id === debitForm.productId);
-    const prodTitle = prod ? prod.name : 'کھاد بوریاں';
+    setIsSubmitting(true);
+    try {
+      const res = await apiRequest('/sales', {
+        method: 'POST',
+        body: JSON.stringify({
+          customerId: debitForm.customerId,
+          customerType: 'registered',
+          items: [
+            {
+              productId: debitForm.productId,
+              quantity: qty,
+              unitPrice: rate,
+            },
+          ],
+          discount: 0,
+          paidAmount: 0,
+          paymentMethod: 'cheque',
+          notes: debitForm.notes.trim() || 'زمیندار کھاتہ ادھار اندراج',
+        }),
+      });
 
-    setCustomers((prev) =>
-      prev.map((c) => {
-        if (c.id === debitForm.customerId) {
-          const newBal = c.balance + totalAmount;
-          const newTx: KhataTransaction = {
-            id: `tx-${Date.now()}`,
-            date: debitForm.date || new Date().toISOString().slice(0, 10),
-            description: `${prodTitle} (${qty} بوریاں @ Rs. ${rate.toLocaleString()})`,
-            biltyOrSlipNo: debitForm.slipNo,
-            debit: totalAmount,
-            credit: 0,
-            balance: newBal,
-          };
-          const updated = {
-            ...c,
-            balance: newBal,
-            status: (newBal > c.creditLimit ? 'over_limit' : 'active') as any,
-            transactions: [...c.transactions, newTx],
-          };
-          if (selectedFarmer?.id === c.id) {
-            setSelectedFarmer(updated);
+      const invNo = res.sale?.invoice_no || debitForm.slipNo;
+      const targetCustomer = customers.find((c) => c.id === debitForm.customerId);
+      const newBal = (targetCustomer?.balance || 0) + totalAmount;
+
+      const prod = availableProducts.find((p) => p.id === debitForm.productId);
+      const prodTitle = prod ? prod.name : 'کھاد بوریاں';
+
+      const newTx: KhataTransaction = {
+        id: `tx-${Date.now()}`,
+        date: debitForm.date || new Date().toISOString().slice(0, 10),
+        description: `${prodTitle} (${qty} بوریاں @ Rs. ${rate.toLocaleString()})`,
+        biltyOrSlipNo: invNo,
+        debit: totalAmount,
+        credit: 0,
+        balance: newBal,
+      };
+
+      setCustomers((prev) =>
+        prev.map((c) => {
+          if (c.id === debitForm.customerId) {
+            const updated = {
+              ...c,
+              balance: newBal,
+              status: (newBal > c.creditLimit ? 'over_limit' : 'active') as any,
+              transactions: [...c.transactions, newTx],
+            };
+            if (selectedFarmer?.id === c.id) {
+              setSelectedFarmer(updated);
+            }
+            return updated;
           }
-          return updated;
-        }
-        return c;
-      })
-    );
+          return c;
+        }),
+      );
 
-    setIsAddDebitOpen(false);
-    setDebitForm({
-      customerId: '',
-      productId: 'prd-1',
-      quantity: '10',
-      unitPrice: '4450',
-      slipNo: `INV-${Math.floor(4000 + Math.random() * 900)}`,
-      date: new Date().toISOString().slice(0, 10),
-      notes: '',
-    });
+      setIsAddDebitOpen(false);
+      setDebitForm({
+        customerId: '',
+        productId: availableProducts[0]?.id || 'prd-1',
+        quantity: '10',
+        unitPrice: String(availableProducts[0]?.price || 4450),
+        slipNo: `INV-${Math.floor(4000 + Math.random() * 900)}`,
+        date: new Date().toISOString().slice(0, 10),
+        notes: '',
+      });
+    } catch (err: any) {
+      alert(`ادھار درج کرنے میں خرابی: ${err?.message || 'Error recording debit'}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const openPaymentForCustomer = (farmer: CustomerFarmer) => {
@@ -563,9 +742,9 @@ export default function CustomersPage() {
   const openDebitForCustomer = (farmer: CustomerFarmer) => {
     setDebitForm({
       customerId: farmer.id,
-      productId: 'prd-1',
+      productId: availableProducts[0]?.id || 'prd-1',
       quantity: '10',
-      unitPrice: '4450',
+      unitPrice: String(availableProducts[0]?.price || 4450),
       slipNo: `INV-${Math.floor(4000 + Math.random() * 900)}`,
       date: new Date().toISOString().slice(0, 10),
       notes: '',
@@ -577,7 +756,7 @@ export default function CustomersPage() {
     const rawPhone = c.phone.replace(/[^0-9]/g, '');
     const intlPhone = rawPhone.startsWith('0') ? '92' + rawPhone.slice(1) : rawPhone;
     const msg = encodeURIComponent(
-      `محترم ${c.name} صاحب،\nآپ کا کھاد و زرعی ادویات کا کھاتہ بیلنس بقایا Rs. ${c.balance.toLocaleString()} ہے۔ برائے مہربانی وعدہ ادائیگی (${c.dueDate}) کے مطابق کھاتہ کلیئر فرمائیں۔ شکریہ۔`
+      `محترم ${c.name} صاحب،\nالسلام علیکم! پنجاب کھاد ایجنسی کی طرف آپ کا کھاد و زرعی ادویات کا کل واجب الادا بقایا کھاتہ Rs. ${c.balance.toLocaleString()} ہے۔ برائے مہربانی تشریف لا کر حساب کلیئر فرمائیں۔ شکریہ!`,
     );
     return `https://wa.me/${intlPhone}?text=${msg}`;
   };
@@ -820,8 +999,8 @@ export default function CustomersPage() {
                           <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 font-bold flex items-center justify-center flex-shrink-0 text-sm">
                             {farmer.name.charAt(0)}
                           </div>
-                          <div className="whitespace-nowrap">
-                            <div className="font-bold text-slate-900 flex items-center gap-2 whitespace-nowrap">
+                          <div className="whitespace-nowrap cursor-pointer" onClick={() => openFarmerLedger(farmer)}>
+                            <div className="font-bold text-slate-900 flex items-center gap-2 whitespace-nowrap hover:text-emerald-700 transition">
                               <span className="whitespace-nowrap">{farmer.name}</span>
                               {isOver && (
                                 <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-100 text-rose-700 border border-rose-200 whitespace-nowrap">
@@ -928,7 +1107,7 @@ export default function CustomersPage() {
                         <div className="flex items-center justify-center gap-1.5">
                           {/* View Ledger */}
                           <button
-                            onClick={() => setSelectedFarmer(farmer)}
+                            onClick={() => openFarmerLedger(farmer)}
                             className="px-2.5 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-semibold flex items-center gap-1 transition"
                             title={isUrdu ? 'کھاتہ لیجر دیکھیں' : 'View Ledger'}
                           >
@@ -1380,7 +1559,7 @@ export default function CustomersPage() {
                   <Select
                     value={debitForm.productId}
                     onValueChange={(val) => {
-                      const sel = AVAILABLE_FERTILIZERS.find((p) => p.id === val);
+                      const sel = availableProducts.find((p) => p.id === val);
                       setDebitForm({
                         ...debitForm,
                         productId: val,
@@ -1392,7 +1571,7 @@ export default function CustomersPage() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-slate-800 border-slate-700 text-white z-[150]">
-                      {AVAILABLE_FERTILIZERS.map((p) => (
+                      {availableProducts.map((p) => (
                         <SelectItem key={p.id} value={p.id}>
                           {p.name} — Rs. {p.price.toLocaleString()}
                         </SelectItem>
@@ -1508,98 +1687,111 @@ export default function CustomersPage() {
               </DialogHeader>
 
               <DialogBody>
-                {/* Top Ledger Snapshot Card */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-slate-800/80 border border-slate-700 text-xs">
-                  <div>
-                    <span className="text-[11px] text-slate-400 block mb-0.5">
-                      {isUrdu ? 'موجودہ بقایا ادھار' : 'Current Balance'}
-                    </span>
-                    <span className="text-base font-black text-rose-400 font-mono">
-                      {formatCurrency(selectedFarmer.balance)}
-                    </span>
+                <div id="printable-khata-statement" className="space-y-4">
+                  {/* Print-only Statement Header */}
+                  <div className="hidden print:block text-center border-b-2 border-slate-900 pb-3 mb-4">
+                    <h2 className="text-xl font-bold text-black font-urdu">پنجاب کھاد ایجنسی اینڈ زرعی ادویات</h2>
+                    <p className="text-xs text-black font-medium mt-0.5">کھاتہ لیجر تفصیلی سٹیٹمنٹ</p>
+                    <div className="flex justify-between text-xs text-black mt-2 font-mono border-t border-slate-300 pt-1.5">
+                      <span>محترم: {selectedFarmer.name} (ولد: {selectedFarmer.fatherName})</span>
+                      <span>چک: {selectedFarmer.village} • فون: {selectedFarmer.phone}</span>
+                      <span>تاریخ: {new Date().toLocaleDateString('en-GB')}</span>
+                    </div>
                   </div>
 
-                  <div>
-                    <span className="text-[11px] text-slate-400 block mb-0.5">
-                      {isUrdu ? 'کریڈٹ لمیٹ' : 'Credit Limit'}
-                    </span>
-                    <span className="text-base font-bold text-slate-200 font-mono">
-                      {formatCurrency(selectedFarmer.creditLimit)}
-                    </span>
+                  {/* Top Ledger Snapshot Card */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-slate-800/80 border border-slate-700 text-xs">
+                    <div>
+                      <span className="text-[11px] text-slate-400 block mb-0.5">
+                        {isUrdu ? 'موجودہ بقایا ادھار' : 'Current Balance'}
+                      </span>
+                      <span className="text-base font-black text-rose-400 font-mono">
+                        {formatCurrency(selectedFarmer.balance)}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[11px] text-slate-400 block mb-0.5">
+                        {isUrdu ? 'کریڈٹ لمیٹ' : 'Credit Limit'}
+                      </span>
+                      <span className="text-base font-bold text-slate-200 font-mono">
+                        {formatCurrency(selectedFarmer.creditLimit)}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[11px] text-slate-400 block mb-0.5">
+                        {isUrdu ? 'ضمانتی' : 'Guarantor'}
+                      </span>
+                      <span className="font-semibold text-slate-200 truncate block">
+                        {selectedFarmer.guarantor}
+                      </span>
+                    </div>
+
+                    <div>
+                      <span className="text-[11px] text-slate-400 block mb-0.5">
+                        {isUrdu ? 'وعدہ ادائیگی' : 'Promised Date'}
+                      </span>
+                      <span className="font-semibold text-amber-300 truncate block">
+                        {selectedFarmer.dueDate}
+                      </span>
+                    </div>
                   </div>
 
-                  <div>
-                    <span className="text-[11px] text-slate-400 block mb-0.5">
-                      {isUrdu ? 'ضمانتی' : 'Guarantor'}
-                    </span>
-                    <span className="font-semibold text-slate-200 truncate block">
-                      {selectedFarmer.guarantor}
-                    </span>
-                  </div>
+                  {/* Ledger Transactions Table */}
+                  <div className="mt-4 rounded-2xl border border-slate-700/80 overflow-hidden bg-slate-800/40">
+                    <div className="p-3 bg-slate-800/80 border-b border-slate-700 flex items-center justify-between">
+                      <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
+                        <Receipt className="w-4 h-4 text-emerald-400" />
+                        {isUrdu ? 'تاریخ وار لین دین کی تفصیل' : 'Chronological Transaction Records'}
+                      </h4>
+                      <span className="text-[11px] text-slate-400 font-mono">
+                        {selectedFarmer.transactions.length} Records
+                      </span>
+                    </div>
 
-                  <div>
-                    <span className="text-[11px] text-slate-400 block mb-0.5">
-                      {isUrdu ? 'وعدہ ادائیگی' : 'Promised Date'}
-                    </span>
-                    <span className="font-semibold text-amber-300 truncate block">
-                      {selectedFarmer.dueDate}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Ledger Transactions Table */}
-                <div className="mt-4 rounded-2xl border border-slate-700/80 overflow-hidden bg-slate-800/40">
-                  <div className="p-3 bg-slate-800/80 border-b border-slate-700 flex items-center justify-between">
-                    <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-2">
-                      <Receipt className="w-4 h-4 text-emerald-400" />
-                      {isUrdu ? 'تاریخ وار لین دین کی تفصیل' : 'Chronological Transaction Records'}
-                    </h4>
-                    <span className="text-[11px] text-slate-400 font-mono">
-                      {selectedFarmer.transactions.length} Records
-                    </span>
-                  </div>
-
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs border-collapse">
-                      <thead>
-                        <tr className="bg-slate-800/90 text-slate-400 text-[11px] border-b border-slate-700">
-                          <th className="py-2.5 px-3">{isUrdu ? 'تاریخ' : 'Date'}</th>
-                          <th className="py-2.5 px-3">{isUrdu ? 'پرچی نمبر' : 'Slip/Inv #'}</th>
-                          <th className="py-2.5 px-3">{isUrdu ? 'تفصیل مال / ادائیگی' : 'Description'}</th>
-                          <th className="py-2.5 px-3 text-right text-rose-400">
-                            {isUrdu ? 'بنام / ادھار (Debit)' : 'Debit (+)'}
-                          </th>
-                          <th className="py-2.5 px-3 text-right text-emerald-400">
-                            {isUrdu ? 'جمع / وصولی (Credit)' : 'Credit (-)'}
-                          </th>
-                          <th className="py-2.5 px-3 text-right font-bold text-white">
-                            {isUrdu ? 'بقایا بیلنس' : 'Running Bal'}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-700/50">
-                        {selectedFarmer.transactions.map((tx) => (
-                          <tr key={tx.id} className="hover:bg-slate-800/60 transition">
-                            <td className="py-3 px-3 font-mono text-slate-300">{tx.date}</td>
-                            <td className="py-3 px-3 font-mono text-slate-400">
-                              {tx.biltyOrSlipNo || '-'}
-                            </td>
-                            <td className="py-3 px-3 text-slate-200 font-medium">
-                              {tx.description}
-                            </td>
-                            <td className="py-3 px-3 text-right font-mono text-rose-400 font-semibold">
-                              {tx.debit > 0 ? formatCurrency(tx.debit) : '-'}
-                            </td>
-                            <td className="py-3 px-3 text-right font-mono text-emerald-400 font-semibold">
-                              {tx.credit > 0 ? formatCurrency(tx.credit) : '-'}
-                            </td>
-                            <td className="py-3 px-3 text-right font-mono font-bold text-white">
-                              {formatCurrency(tx.balance)}
-                            </td>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="bg-slate-800/90 text-slate-400 text-[11px] border-b border-slate-700">
+                            <th className="py-2.5 px-3">{isUrdu ? 'تاریخ' : 'Date'}</th>
+                            <th className="py-2.5 px-3">{isUrdu ? 'پرچی نمبر' : 'Slip/Inv #'}</th>
+                            <th className="py-2.5 px-3">{isUrdu ? 'تفصیل مال / ادائیگی' : 'Description'}</th>
+                            <th className="py-2.5 px-3 text-right text-rose-400">
+                              {isUrdu ? 'بنام / ادھار (Debit)' : 'Debit (+)'}
+                            </th>
+                            <th className="py-2.5 px-3 text-right text-emerald-400">
+                              {isUrdu ? 'جمع / وصولی (Credit)' : 'Credit (-)'}
+                            </th>
+                            <th className="py-2.5 px-3 text-right font-bold text-white">
+                              {isUrdu ? 'بقایا بیلنس' : 'Running Bal'}
+                            </th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                        </thead>
+                        <tbody className="divide-y divide-slate-700/50">
+                          {selectedFarmer.transactions.map((tx) => (
+                            <tr key={tx.id} className="hover:bg-slate-800/60 transition">
+                              <td className="py-3 px-3 font-mono text-slate-300">{tx.date}</td>
+                              <td className="py-3 px-3 font-mono text-slate-400">
+                                {tx.biltyOrSlipNo || '-'}
+                              </td>
+                              <td className="py-3 px-3 text-slate-200 font-medium">
+                                {tx.description}
+                              </td>
+                              <td className="py-3 px-3 text-right font-mono text-rose-400 font-semibold">
+                                {tx.debit > 0 ? formatCurrency(tx.debit) : '-'}
+                              </td>
+                              <td className="py-3 px-3 text-right font-mono text-emerald-400 font-semibold">
+                                {tx.credit > 0 ? formatCurrency(tx.credit) : '-'}
+                              </td>
+                              <td className="py-3 px-3 text-right font-mono font-bold text-white">
+                                {formatCurrency(tx.balance)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 </div>
               </DialogBody>
@@ -1642,6 +1834,205 @@ export default function CustomersPage() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* ========================================================================= */}
+      {/* MODAL 5: THERMAL WASOOLI RECEIPT MODAL (وصولی رسید پرچی برائے کسان)          */}
+      {/* ========================================================================= */}
+      <Dialog open={isReceiptModalOpen} onOpenChange={setIsReceiptModalOpen}>
+        <DialogContent className="max-w-md bg-slate-900 border border-slate-800 text-white rounded-3xl shadow-2xl p-6">
+          <DialogHeader>
+            <div className="flex items-center gap-2 text-emerald-400">
+              <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+              <DialogTitle className={`text-lg font-bold text-white ${isUrdu ? 'font-urdu' : ''}`}>
+                {isUrdu ? 'وصولی کامیابی سے محفوظ ہو گئی' : 'Payment Recorded Successfully'}
+              </DialogTitle>
+            </div>
+            <DialogDescription className="text-xs text-slate-400">
+              {isUrdu
+                ? 'کسان کے کھاتے میں رقم جمع ہو چکی ہے۔ رسید پرنٹ کریں یا واٹس ایپ پر ارسال کریں۔'
+                : 'Customer ledger credited. Print 80mm thermal slip or share via WhatsApp.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          {wasooliReceipt && (
+            <div className="my-2">
+              {/* Receipt Preview Paper (80mm style) */}
+              <div
+                id="printable-wasooli-receipt"
+                className="bg-white text-slate-900 rounded-2xl p-5 shadow-inner border border-slate-200 font-sans text-xs leading-relaxed"
+                dir={isUrdu ? 'rtl' : 'ltr'}
+              >
+                {/* Header */}
+                <div className="text-center pb-3 border-b-2 border-dashed border-slate-300">
+                  <div className="flex items-center justify-center gap-1.5 text-emerald-700 font-extrabold text-base">
+                    <Sprout className="w-5 h-5" />
+                    <span>{isUrdu ? 'پنجاب کھاد ایجنسی' : 'Punjab Fertilizer Agency'}</span>
+                  </div>
+                  <p className="text-[11px] text-slate-600 font-medium mt-0.5">
+                    {isUrdu ? 'ڈیلر: یوریا، ڈی اے پی، پوٹاش و زرعی ادویات' : 'Authorized Fertilizer & Pesticide Dealers'}
+                  </p>
+                  <p className="text-[10px] text-slate-500 font-mono mt-0.5">
+                    Main Mandi, Depalpur Road • Phone: 0300-7654321
+                  </p>
+                  <div className="inline-block mt-2 px-3 py-1 bg-emerald-100 text-emerald-900 font-bold rounded-full text-[11px]">
+                    {isUrdu ? 'رسید وصولی برائے کھاتہ' : 'PAYMENT RECOVERY SLIP'}
+                  </div>
+                </div>
+
+                {/* Receipt Metadata */}
+                <div className="py-2.5 border-b border-dashed border-slate-300 grid grid-cols-2 gap-2 text-[11px]">
+                  <div>
+                    <span className="text-slate-500 block">{isUrdu ? 'رسید نمبر:' : 'Receipt No:'}</span>
+                    <span className="font-bold font-mono text-slate-900">{wasooliReceipt.receiptNo}</span>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-slate-500 block">{isUrdu ? 'تاریخ و وقت:' : 'Date & Time:'}</span>
+                    <span className="font-mono text-slate-800">{wasooliReceipt.date} {wasooliReceipt.time}</span>
+                  </div>
+                </div>
+
+                {/* Customer Details */}
+                <div className="py-2.5 border-b border-dashed border-slate-300 space-y-1">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-500">{isUrdu ? 'محترم کسان:' : 'Farmer Name:'}</span>
+                    <span className="font-bold text-slate-900 text-sm">{wasooliReceipt.farmerName}</span>
+                  </div>
+                  {wasooliReceipt.village && (
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="text-slate-500">{isUrdu ? 'چک / موزہ:' : 'Village:'}</span>
+                      <span className="font-medium text-slate-700">{wasooliReceipt.village}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center text-[11px]">
+                    <span className="text-slate-500">{isUrdu ? 'طریقہ ادائیگی:' : 'Payment Mode:'}</span>
+                    <span className="font-semibold text-blue-700">{wasooliReceipt.paymentMethod}</span>
+                  </div>
+                  {wasooliReceipt.notes && (
+                    <div className="flex justify-between items-center text-[11px]">
+                      <span className="text-slate-500">{isUrdu ? 'کیفیت:' : 'Notes:'}</span>
+                      <span className="italic text-slate-600 truncate max-w-[180px]">{wasooliReceipt.notes}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Amount Ledger Breakdown */}
+                <div className="py-3 border-b-2 border-dashed border-slate-300 space-y-2 text-[12px]">
+                  <div className="flex justify-between text-slate-600">
+                    <span>{isUrdu ? 'سابقہ کل بقایا:' : 'Previous Balance:'}</span>
+                    <span className="font-mono font-medium">Rs. {wasooliReceipt.oldBalance.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center bg-emerald-50 px-2.5 py-1.5 rounded-lg border border-emerald-200 text-emerald-800 font-bold">
+                    <span className="text-xs">{isUrdu ? 'موصولہ رقم (جمع):' : 'Amount Received:'}</span>
+                    <span className="text-base font-black font-mono">Rs. {wasooliReceipt.amount.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-900 font-extrabold text-sm pt-1">
+                    <span>{isUrdu ? 'نیا بقیہ واجب الادا:' : 'New Balance Remaining:'}</span>
+                    <span className={`font-mono ${wasooliReceipt.newBalance > 0 ? 'text-rose-600' : 'text-emerald-600'}`}>
+                      Rs. {wasooliReceipt.newBalance.toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Footer Signatures */}
+                <div className="pt-3 text-center space-y-2">
+                  <div className="flex justify-between items-end pt-4 px-2 text-[10px] text-slate-500">
+                    <div className="border-t border-slate-400 pt-1 w-20 text-center">
+                      {isUrdu ? 'دستخط کسان' : 'Farmer Sign'}
+                    </div>
+                    <div className="border-t border-slate-400 pt-1 w-24 text-center">
+                      {isUrdu ? 'دستخط کیشئر / ڈیلر' : 'Cashier / Dealer'}
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-400 font-medium pt-2">
+                    {isUrdu ? 'کاروبار پر اعتماد کا شکریہ! کمپیوٹرائزڈ پرچی' : 'Thank you for your business! Powered by AgriPOS'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="flex flex-col sm:flex-row gap-2 mt-2">
+            <button
+              type="button"
+              onClick={() => {
+                window.print();
+              }}
+              className="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/40 transition active:scale-95"
+            >
+              <Printer className="w-4 h-4" />
+              <span>{isUrdu ? 'پرنٹ رسید (80mm Thermal)' : 'Print Receipt'}</span>
+            </button>
+
+            {wasooliReceipt && (
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(
+                  `*پنجاب کھاد ایجنسی - رسید وصولی*\nمحترم ${wasooliReceipt.farmerName} صاحب،\nآپ کی طرف سے Rs. ${wasooliReceipt.amount.toLocaleString()} کی وصولی بذریعہ ${wasooliReceipt.paymentMethod} موصول ہو چکی ہے۔\nرسید نمبر: ${wasooliReceipt.receiptNo}\nنیا بقیہ کھاتہ: Rs. ${wasooliReceipt.newBalance.toLocaleString()}\nشکریہ!`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-2.5 px-3 rounded-xl bg-emerald-700/40 hover:bg-emerald-700/60 text-emerald-300 font-semibold text-xs sm:text-sm flex items-center justify-center gap-1.5 transition active:scale-95 border border-emerald-600/30"
+              >
+                <Send className="w-4 h-4" />
+                <span>WhatsApp</span>
+              </a>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setIsReceiptModalOpen(false)}
+              className="py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs sm:text-sm font-semibold transition"
+            >
+              {isUrdu ? 'بند کریں' : 'Close'}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Print Specific CSS Rules */}
+      <style jsx global>{`
+        @media print {
+          body * {
+            visibility: hidden !important;
+          }
+          #printable-wasooli-receipt,
+          #printable-wasooli-receipt * {
+            visibility: visible !important;
+          }
+          #printable-wasooli-receipt {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 76mm !important;
+            margin: 0 !important;
+            padding: 8px !important;
+            background: white !important;
+            color: black !important;
+            font-size: 11px !important;
+            box-shadow: none !important;
+            border: none !important;
+            display: block !important;
+          }
+          #printable-khata-statement,
+          #printable-khata-statement * {
+            visibility: visible !important;
+          }
+          #printable-khata-statement {
+            position: fixed !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 16px !important;
+            background: white !important;
+            color: black !important;
+            display: block !important;
+          }
+          @page {
+            margin: 5mm;
+            size: auto;
+          }
+        }
+      `}</style>
     </div>
   );
 }
