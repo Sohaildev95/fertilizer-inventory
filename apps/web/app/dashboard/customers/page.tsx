@@ -3,6 +3,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLanguage } from '../../../lib/language-context';
 import { apiRequest } from '../../../lib/api-client';
+import { PAKISTANI_CROPS } from '@fertilizer/shared';
 import {
   Users,
   Phone,
@@ -313,6 +314,26 @@ export default function CustomersPage() {
   const [wasooliReceipt, setWasooliReceipt] = useState<any>(null);
   const [isReceiptModalOpen, setIsReceiptModalOpen] = useState(false);
 
+  // Fasli Udhaar & Harvest Recovery State
+  const [activeTab, setActiveTab] = useState<'farmers' | 'fasli'>('farmers');
+  const [fasliForecast, setFasliForecast] = useState<any>(null);
+  const [isFasliLoading, setIsFasliLoading] = useState(false);
+  const [isAddCropModalOpen, setIsAddCropModalOpen] = useState(false);
+  const [fasliFilterSeason, setFasliFilterSeason] = useState('all');
+
+  // Form State: Add Crop Cycle
+  const [cropForm, setCropForm] = useState({
+    customerId: '',
+    cropKey: 'wheat',
+    cropName: 'گندم (Wheat 2026)',
+    seasonType: 'rabi' as 'rabi' | 'kharif' | 'zaid',
+    seasonYear: 2026,
+    landAcreage: '20',
+    expectedHarvestDate: '2026-04-25',
+    expectedAmount: '200000',
+    notes: '',
+  });
+
   // Server KPI stats
   const [apiStats, setApiStats] = useState<{
     totalCount: number;
@@ -415,9 +436,63 @@ export default function CustomersPage() {
     }
   };
 
+  const loadFasliForecast = async () => {
+    setIsFasliLoading(true);
+    try {
+      const res = await apiRequest<any>('/customers/fasli-udhaar/forecast');
+      if (res) {
+        setFasliForecast(res);
+      }
+    } catch (err) {
+      console.warn('Fasli forecast fetch failed:', err);
+    } finally {
+      setIsFasliLoading(false);
+    }
+  };
+
   useEffect(() => {
     loadCustomers();
+    loadFasliForecast();
   }, []);
+
+  const handleSaveCropCycle = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!cropForm.customerId) return;
+
+    setIsSubmitting(true);
+    try {
+      await apiRequest(`/customers/${cropForm.customerId}/crop-cycles`, {
+        method: 'POST',
+        body: JSON.stringify({
+          cropName: cropForm.cropName,
+          cropKey: cropForm.cropKey,
+          seasonType: cropForm.seasonType,
+          seasonYear: Number(cropForm.seasonYear) || 2026,
+          landAcreage: Number(cropForm.landAcreage) || 10,
+          expectedHarvestDate: cropForm.expectedHarvestDate,
+          expectedAmount: Number(cropForm.expectedAmount) || 0,
+          notes: cropForm.notes.trim() || undefined,
+        }),
+      });
+
+      setIsAddCropModalOpen(false);
+      loadFasliForecast();
+      loadCustomers();
+    } catch (err: any) {
+      alert(`فصل کا اندراج کرنے میں خرابی: ${err?.message || 'Error adding crop cycle'}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const getFasliWhatsAppLink = (f: any) => {
+    const rawPhone = (f.phone || '').replace(/[^0-9]/g, '');
+    const intlPhone = rawPhone.startsWith('0') ? '92' + rawPhone.slice(1) : rawPhone;
+    const msg = encodeURIComponent(
+      `محترم ${f.customer_name} صاحب،\nالسلام علیکم! امید ہے آپ کی ${f.crop_name} کی فصل تیار ہوگی۔\nآپ کے ذمے کسان فرٹیلائزر کا فصلی ادھار Rs. ${Number(f.expected_amount || f.current_balance || 0).toLocaleString()} ہے۔ کٹائی کے بعد تشریف لا کر حساب کلیئر فرمائیں۔ شکریہ! - کسان فرٹیلائزر ایجنسی`,
+    );
+    return `https://wa.me/${intlPhone}?text=${msg}`;
+  };
 
   // Fetch full ledger when farmer selected
   const openFarmerLedger = async (farmer: CustomerFarmer) => {
@@ -806,6 +881,19 @@ export default function CustomersPage() {
           </button>
 
           <button
+            onClick={() => {
+              if (customers.length > 0 && !cropForm.customerId) {
+                setCropForm((prev) => ({ ...prev, customerId: customers[0]?.id || '' }));
+              }
+              setIsAddCropModalOpen(true);
+            }}
+            className="px-3.5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm font-semibold shadow-sm shadow-purple-600/20 flex items-center gap-1.5 transition active:scale-95 whitespace-nowrap flex-shrink-0"
+          >
+            <Sprout className="w-4 h-4 flex-shrink-0" />
+            <span>{isUrdu ? 'نیا فصلی ریکارڈ' : 'Add Crop Cycle'}</span>
+          </button>
+
+          <button
             onClick={() => setIsAddFarmerOpen(true)}
             className="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-semibold shadow-sm shadow-emerald-600/20 flex items-center gap-1.5 transition active:scale-95 whitespace-nowrap flex-shrink-0"
           >
@@ -899,9 +987,48 @@ export default function CustomersPage() {
       </div>
 
       {/* ========================================================================= */}
-      {/* 3. Search & Filters Bar                                                   */}
+      {/* View Switcher: All Farmers vs Fasli Harvest Forecast                      */}
       {/* ========================================================================= */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-sm flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
+      <div className="flex items-center gap-2.5 border-b border-slate-200/80 pb-3">
+        <button
+          onClick={() => setActiveTab('farmers')}
+          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition active:scale-95 ${
+            activeTab === 'farmers'
+              ? 'bg-emerald-600 text-white shadow-sm'
+              : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+          }`}
+        >
+          <Users size={16} />
+          <span>{isUrdu ? 'تمام کھاتے دار کسان' : 'All Farmers Register'}</span>
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('fasli');
+            loadFasliForecast();
+          }}
+          className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition active:scale-95 ${
+            activeTab === 'fasli'
+              ? 'bg-amber-600 text-white shadow-sm'
+              : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
+          }`}
+        >
+          <Sprout size={16} />
+          <span>{isUrdu ? 'فصلی ادھار و کٹائی کیلنڈر' : 'Fasli Harvest Forecast'}</span>
+          <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
+            activeTab === 'fasli' ? 'bg-amber-100 text-amber-900' : 'bg-slate-100 text-slate-700'
+          }`}>
+            {isUrdu ? 'ربیع و خریف' : 'Rabi & Kharif'}
+          </span>
+        </button>
+      </div>
+
+      {activeTab === 'farmers' && (
+        <>
+          {/* ========================================================================= */}
+          {/* 3. Search & Filters Bar                                                   */}
+          {/* ========================================================================= */}
+          <div className="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-sm flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
         {/* Search */}
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -1145,10 +1272,285 @@ export default function CustomersPage() {
           </table>
         </div>
       </div>
+    </>
+  )}
 
-      {/* ========================================================================= */}
-      {/* MODAL 1: ADD NEW FARMER (نیا زمیندار رجسٹر کریں)                             */}
-      {/* ========================================================================= */}
+  {/* ========================================================================= */}
+  {/* FASLI HARVEST RECOVERY FORECAST & CALENDAR VIEW                           */}
+  {/* ========================================================================= */}
+  {activeTab === 'fasli' && (
+    <div className="space-y-6 animate-in fade-in duration-300">
+      {/* Fasli Seasonal KPI Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Fasli Receivable */}
+        <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-2xl p-5 text-white shadow-md shadow-amber-600/20 relative overflow-hidden group">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-100">
+              {isUrdu ? 'کل متوقع فصلی ادھار' : 'Total Fasli Receivable'}
+            </span>
+            <div className="p-2 bg-white/20 rounded-lg">
+              <Sprout className="w-5 h-5 text-white" />
+            </div>
+          </div>
+          <div className="text-2xl font-black font-mono">
+            {formatCurrency(fasliForecast?.summary?.totalReceivable || 0)}
+          </div>
+          <p className="text-[11px] text-amber-100 mt-1">
+            {isUrdu ? 'فصلوں کی کٹائی پر متوقع کل وصولی' : 'Total expected recovery at crop harvests'}
+          </p>
+        </div>
+
+        {/* Rabi Season Card */}
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm relative overflow-hidden group">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              {isUrdu ? 'ربیع سیزن (گندم، آلو، سرسوں)' : 'Rabi Season (Wheat/Potato)'}
+            </span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+              {isUrdu ? 'مارچ - مئی' : 'Mar - May'}
+            </span>
+          </div>
+          <div className="text-2xl font-black text-emerald-700 font-mono">
+            {formatCurrency(fasliForecast?.summary?.rabiTotal || 0)}
+          </div>
+          <p className="text-[11px] text-slate-500 mt-1">
+            {isUrdu ? 'گندم کٹائی پیک پر وصولی' : 'Rabi harvest recovery'}
+          </p>
+        </div>
+
+        {/* Kharif Season Card */}
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm relative overflow-hidden group">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              {isUrdu ? 'خریف سیزن (کپاس، چاول، مکئی)' : 'Kharif (Cotton/Rice/Corn)'}
+            </span>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">
+              {isUrdu ? 'ستمبر - نومبر' : 'Sep - Nov'}
+            </span>
+          </div>
+          <div className="text-2xl font-black text-blue-700 font-mono">
+            {formatCurrency(fasliForecast?.summary?.kharifTotal || 0)}
+          </div>
+          <p className="text-[11px] text-slate-500 mt-1">
+            {isUrdu ? 'کپاس چنائی و دھان کٹائی وصولی' : 'Kharif harvest recovery'}
+          </p>
+        </div>
+
+        {/* Active Crop Farmers */}
+        <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-sm relative overflow-hidden group">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+              {isUrdu ? 'کل فصلی کھاتے دار' : 'Active Crop Farmers'}
+            </span>
+            <div className="p-2 bg-purple-100 rounded-lg text-purple-700">
+              <Users className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="text-2xl font-black text-slate-800 font-mono">
+            {fasliForecast?.summary?.totalFarmers || 0}{' '}
+            <span className="text-sm font-normal text-slate-500">{isUrdu ? 'کسان' : 'Farmers'}</span>
+          </div>
+          <p className="text-[11px] text-slate-500 mt-1">
+            {isUrdu ? 'جن کے ذمے فصلی ادھار رجسٹرڈ ہے' : 'Farmers tagged with crop harvest cycles'}
+          </p>
+        </div>
+      </div>
+
+      {/* Season Filter Pills Bar */}
+      <div className="flex items-center justify-between flex-wrap gap-3 bg-white p-3.5 rounded-2xl border border-slate-200/90 shadow-xs">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-slate-600">
+            {isUrdu ? 'سیزن فلٹر:' : 'Filter Season:'}
+          </span>
+          <button
+            onClick={() => setFasliFilterSeason('all')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+              fasliFilterSeason === 'all'
+                ? 'bg-slate-800 text-white'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            {isUrdu ? 'تمام فصلیں' : 'All Crops'}
+          </button>
+          <button
+            onClick={() => setFasliFilterSeason('rabi')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+              fasliFilterSeason === 'rabi'
+                ? 'bg-emerald-600 text-white'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            🌾 {isUrdu ? 'صرف ربیع (گندم و آلو)' : 'Rabi (Wheat/Potato)'}
+          </button>
+          <button
+            onClick={() => setFasliFilterSeason('kharif')}
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+              fasliFilterSeason === 'kharif'
+                ? 'bg-blue-600 text-white'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            ☁️ {isUrdu ? 'صرف خریف (کپاس و چاول)' : 'Kharif (Cotton/Rice)'}
+          </button>
+        </div>
+
+        <button
+          onClick={() => {
+            if (customers.length > 0 && !cropForm.customerId) {
+              setCropForm((prev) => ({ ...prev, customerId: customers[0]?.id || '' }));
+            }
+            setIsAddCropModalOpen(true);
+          }}
+          className="px-3.5 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold flex items-center gap-1.5 transition active:scale-95 shadow-xs"
+        >
+          <PlusCircle size={15} />
+          <span>{isUrdu ? 'نیا فصلی ادھار ریکارڈ' : 'Add Farmer Crop'}</span>
+        </button>
+      </div>
+
+      {/* Month-by-Month Harvest Recovery Timeline */}
+      {isFasliLoading ? (
+        <div className="bg-white rounded-2xl p-12 text-center text-slate-400 border border-slate-200">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-amber-600 mb-2" />
+          <p className="text-sm font-semibold text-slate-600">
+            {isUrdu ? 'فصلی کٹائی کیلنڈر لوڈ ہو رہا ہے...' : 'Loading harvest schedule...'}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-5">
+          {(fasliForecast?.forecast || [])
+            .filter((month: any) =>
+              fasliFilterSeason === 'all' ? true : month.seasonType === fasliFilterSeason,
+            )
+            .map((month: any) => {
+              const isRabi = month.seasonType === 'rabi';
+              return (
+                <div
+                  key={month.monthKey}
+                  className="bg-white rounded-2xl border border-slate-200/90 shadow-sm overflow-hidden"
+                >
+                  {/* Month Banner */}
+                  <div
+                    className={`p-4 border-b flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                      isRabi ? 'bg-emerald-50/80 border-emerald-100' : 'bg-blue-50/80 border-blue-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg shadow-xs ${
+                          isRabi ? 'bg-emerald-600 text-white' : 'bg-blue-600 text-white'
+                        }`}
+                      >
+                        {isRabi ? '🌾' : '☁️'}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className={`text-base font-bold text-slate-900 ${isUrdu ? 'font-urdu' : ''}`}>
+                            {isUrdu ? month.monthUrdu : month.monthEnglish}
+                          </h3>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              isRabi ? 'bg-emerald-200 text-emerald-900' : 'bg-blue-200 text-blue-900'
+                            }`}
+                          >
+                            {isRabi ? (isUrdu ? 'ربیع سیزن' : 'Rabi') : (isUrdu ? 'خریف سیزن' : 'Kharif')}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1 flex-wrap">
+                          {(month.cropsSummary || []).map((cs: any) => (
+                            <span
+                              key={cs.cropName}
+                              className="text-xs bg-white/80 border border-slate-200/60 px-2 py-0.5 rounded-md text-slate-700 font-medium"
+                            >
+                              {cs.cropName}: {cs.acres} ایکڑ ({formatCurrency(cs.amount)})
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Month Total Recovery */}
+                    <div className="text-left sm:text-right">
+                      <span className="text-[11px] text-slate-500 font-semibold block">
+                        {isUrdu ? 'اس مہینے متوقع وصولی:' : 'Expected This Month:'}
+                      </span>
+                      <span
+                        className={`text-xl font-black font-mono ${
+                          isRabi ? 'text-emerald-700' : 'text-blue-700'
+                        }`}
+                      >
+                        {formatCurrency(month.totalReceivable)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Farmers in this Month Table */}
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse whitespace-nowrap">
+                      <thead>
+                        <tr className="bg-slate-50/60 border-b border-slate-100 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                          <th className="py-2.5 px-4">{isUrdu ? 'زمیندار کا نام' : 'Farmer Name'}</th>
+                          <th className="py-2.5 px-4">{isUrdu ? 'چک / موزہ' : 'Village'}</th>
+                          <th className="py-2.5 px-4">{isUrdu ? 'فصل و رقبہ' : 'Crop & Acreage'}</th>
+                          <th className="py-2.5 px-4">{isUrdu ? 'متوقع کٹائی تاریخ' : 'Harvest Date'}</th>
+                          <th className="py-2.5 px-4 text-right">{isUrdu ? 'فصلی ادھار رقم' : 'Receivable'}</th>
+                          <th className="py-2.5 px-4 text-center">{isUrdu ? 'یاد دہانی واٹس ایپ' : 'WhatsApp'}</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
+                        {(month.farmers || []).map((farmer: any) => (
+                          <tr
+                            key={farmer.crop_cycle_id || farmer.customer_id}
+                            className="hover:bg-slate-50/60 transition"
+                          >
+                            <td className="py-3 px-4 font-bold text-slate-900">
+                              {farmer.customer_name}
+                              <span className="block text-[11px] font-normal text-slate-500 font-mono">
+                                {farmer.phone}
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-slate-600">{farmer.village}</td>
+                            <td className="py-3 px-4">
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                <span>{farmer.crop_name}</span>
+                                <span>•</span>
+                                <span>{farmer.land_acreage} ایکڑ</span>
+                              </span>
+                            </td>
+                            <td className="py-3 px-4 text-slate-700 font-medium font-mono">
+                              {farmer.expected_harvest_date}
+                            </td>
+                            <td className="py-3 px-4 text-right font-black text-rose-600 font-mono">
+                              {formatCurrency(farmer.expected_amount || farmer.current_balance)}
+                            </td>
+                            <td className="py-3 px-4 text-center">
+                              <a
+                                href={getFasliWhatsAppLink(farmer)}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-xs"
+                                title={isUrdu ? 'فصلی کٹائی پر ادائیگی کا پیغام بھیجیں' : 'Send Harvest WhatsApp Reminder'}
+                              >
+                                <Send size={13} />
+                                <span>{isUrdu ? 'واٹس ایپ' : 'WhatsApp'}</span>
+                              </a>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })}
+        </div>
+      )}
+    </div>
+  )}
+
+  {/* ========================================================================= */}
+  {/* MODAL 1: ADD NEW FARMER (نیا زمیندار رجسٹر کریں)                             */}
+  {/* ========================================================================= */}
       <Dialog open={isAddFarmerOpen} onOpenChange={setIsAddFarmerOpen}>
         <DialogContent className="max-w-3xl bg-slate-900 border border-slate-800 text-white rounded-3xl shadow-2xl">
           <DialogHeader>
@@ -1988,51 +2390,205 @@ export default function CustomersPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Print Specific CSS Rules */}
-      <style>{`
-        @media print {
-          body * {
-            visibility: hidden !important;
-          }
-          #printable-wasooli-receipt,
-          #printable-wasooli-receipt * {
-            visibility: visible !important;
-          }
-          #printable-wasooli-receipt {
-            position: fixed !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 76mm !important;
-            margin: 0 !important;
-            padding: 8px !important;
-            background: white !important;
-            color: black !important;
-            font-size: 11px !important;
-            box-shadow: none !important;
-            border: none !important;
-            display: block !important;
-          }
-          #printable-khata-statement,
-          #printable-khata-statement * {
-            visibility: visible !important;
-          }
-          #printable-khata-statement {
-            position: fixed !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 16px !important;
-            background: white !important;
-            color: black !important;
-            display: block !important;
-          }
-          @page {
-            margin: 5mm;
-            size: auto;
-          }
-        }
-      `}</style>
+      {/* ========================================================================= */}
+      {/* MODAL 6: ADD FARMER CROP CYCLE (نیا فصلی ادھار و کٹائی شیڈول)              */}
+      {/* ========================================================================= */}
+      <Dialog open={isAddCropModalOpen} onOpenChange={setIsAddCropModalOpen}>
+        <DialogContent className="max-w-2xl bg-slate-900 border border-slate-800 text-white rounded-3xl shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className={`text-xl font-bold text-white ${isUrdu ? 'font-urdu' : ''}`}>
+              {isUrdu ? 'نیا فصلی ادھار و کٹائی ریکارڈ' : 'Add Farmer Crop Season Record'}
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-400 mt-0.5">
+              {isUrdu
+                ? 'کسان کے ذمے فصل، رقبہ، متوقع کٹائی تاریخ اور وصولی رقم درج کریں تاکہ کٹائی سیزن پر خودکار الرٹ ملے۔'
+                : 'Tag farmer with crop, acreage, harvest date, and expected recovery amount for seasonal alerts.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleSaveCropCycle} className="flex-1 flex flex-col overflow-hidden">
+            <DialogBody>
+              <div className="space-y-4">
+                {/* Farmer Select */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    {isUrdu ? 'کھاتے دار کسان منتخب کریں*' : 'Select Farmer Customer*'}
+                  </label>
+                  <Select
+                    value={cropForm.customerId}
+                    onValueChange={(val) => {
+                      const selCustomer = customers.find((c) => c.id === val);
+                      setCropForm({
+                        ...cropForm,
+                        customerId: val,
+                        expectedAmount: selCustomer ? String(selCustomer.balance) : cropForm.expectedAmount,
+                      });
+                    }}
+                  >
+                    <SelectTrigger className="w-full bg-slate-800 border-slate-700 text-white h-[42px]">
+                      <SelectValue placeholder={isUrdu ? 'کسان منتخب کریں...' : 'Choose farmer...'} />
+                    </SelectTrigger>
+                    <SelectContent className="bg-slate-800 border-slate-700 text-white z-[150]">
+                      {customers.map((c) => (
+                        <SelectItem key={c.id} value={c.id}>
+                          {c.name} ({c.village}) — بقایا: Rs. {c.balance.toLocaleString()}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Crop Select */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                      {isUrdu ? 'فصل منتخب کریں*' : 'Select Crop*'}
+                    </label>
+                    <Select
+                      value={cropForm.cropKey}
+                      onValueChange={(val) => {
+                        const crop = PAKISTANI_CROPS.find((c) => c.key === val);
+                        if (crop) {
+                          const year = new Date().getFullYear();
+                          const targetMonth = String(crop.peakHarvestMonthNumber).padStart(2, '0');
+                          setCropForm({
+                            ...cropForm,
+                            cropKey: crop.key,
+                            cropName: `${crop.urduName} (${crop.name})`,
+                            seasonType: crop.season as 'rabi' | 'kharif' | 'zaid',
+                            expectedHarvestDate: `${year}-${targetMonth}-15`,
+                          });
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-full bg-slate-800 border-slate-700 text-white h-[42px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-slate-700 text-white z-[150]">
+                        {PAKISTANI_CROPS.map((crop) => (
+                          <SelectItem key={crop.key} value={crop.key}>
+                            {crop.icon} {crop.urduName} ({crop.name})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                      {isUrdu ? 'سیزن کی قسم' : 'Season'}
+                    </label>
+                    <Select
+                      value={cropForm.seasonType}
+                      onValueChange={(val: any) => setCropForm({ ...cropForm, seasonType: val })}
+                    >
+                      <SelectTrigger className="w-full bg-slate-800 border-slate-700 text-white h-[42px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-slate-700 text-white z-[150]">
+                        <SelectItem value="rabi">🌾 ربیع سیزن (Rabi - گندم و آلو)</SelectItem>
+                        <SelectItem value="kharif">☁️ خریف سیزن (Kharif - کپاس، چاول، کماد)</SelectItem>
+                        <SelectItem value="zaid">🌿 زائد / سارا سال (Zaid / Orchards)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Acreage & Expected Harvest Date */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                      {isUrdu ? 'رقبہ (ایکڑ)*' : 'Acreage (Acres)*'}
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      value={cropForm.landAcreage}
+                      onChange={(e) => setCropForm({ ...cropForm, landAcreage: e.target.value })}
+                      placeholder="10"
+                      className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                      {isUrdu ? 'متوقع کٹائی تاریخ*' : 'Expected Harvest Date*'}
+                    </label>
+                    <DatePicker
+                      value={cropForm.expectedHarvestDate}
+                      onChange={(date) => setCropForm({ ...cropForm, expectedHarvestDate: date })}
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Expected Recovery Amount */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                      {isUrdu ? 'متوقع وصولی رقم (روپے)*' : 'Expected Recovery Amount (PKR)*'}
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      value={cropForm.expectedAmount}
+                      onChange={(e) => setCropForm({ ...cropForm, expectedAmount: e.target.value })}
+                      placeholder="0"
+                      className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-base text-amber-400 font-mono font-bold focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                      {isUrdu ? 'سیزن کا سال' : 'Season Year'}
+                    </label>
+                    <input
+                      type="number"
+                      value={cropForm.seasonYear}
+                      onChange={(e) => setCropForm({ ...cropForm, seasonYear: Number(e.target.value) || 2026 })}
+                      className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white font-mono focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
+
+                {/* Notes */}
+                <div>
+                  <label className="block text-xs font-semibold text-slate-300 mb-1.5">
+                    {isUrdu ? 'نوٹ / تفصیل' : 'Notes / Remarks'}
+                  </label>
+                  <input
+                    type="text"
+                    value={cropForm.notes}
+                    onChange={(e) => setCropForm({ ...cropForm, notes: e.target.value })}
+                    placeholder={isUrdu ? 'مثلاً: گندم منڈی میں بیچتے ہی ادائیگی ہوگی' : 'Payment promise at harvest...'}
+                    className="w-full px-3.5 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:ring-2 focus:ring-amber-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+            </DialogBody>
+
+            <DialogFooter>
+              <button
+                type="button"
+                onClick={() => setIsAddCropModalOpen(false)}
+                className="px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-semibold transition active:scale-95"
+              >
+                {isUrdu ? 'منسوخ کریں' : 'Cancel'}
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="px-6 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold shadow-lg shadow-amber-900/30 transition transform active:scale-95 disabled:opacity-50 flex items-center gap-2"
+              >
+                {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+                <span>{isUrdu ? 'فصلی شیڈول محفوظ کریں' : 'Save Crop Schedule'}</span>
+              </button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

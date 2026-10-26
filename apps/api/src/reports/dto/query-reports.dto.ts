@@ -34,4 +34,13 @@ export class QueryReportsDto {
   @IsOptional()
   @IsString()
   date?: string;
+
+  @ApiPropertyOptional({
+    example: 'Fauji Fertilizer Company (FFC)',
+    description: 'Filter by fertilizer brand or company name',
+  })
+  @IsOptional()
+  @IsString()
+  company?: string;
 }
+

@@ -39,6 +39,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     if (typeof document !== 'undefined') {
       document.documentElement.dir = direction;
       document.documentElement.lang = language;
+      document.documentElement.classList.add('notranslate');
+      document.documentElement.setAttribute('translate', 'no');
       if (isUrdu) {
         document.documentElement.classList.add('urdu-mode');
       } else {

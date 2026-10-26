@@ -1111,34 +1111,6 @@ export default function PurchasesPage() {
           )}
         </DialogContent>
       </Dialog>
-
-      {/* Print Specific CSS Rules */}
-      <style>{`
-        @media print {
-          body * {
-            visibility: hidden !important;
-          }
-          #printable-purchase-bill,
-          #printable-purchase-bill * {
-            visibility: visible !important;
-          }
-          #printable-purchase-bill {
-            position: fixed !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 16px !important;
-            background: white !important;
-            color: black !important;
-            display: block !important;
-          }
-          @page {
-            margin: 5mm;
-            size: auto;
-          }
-        }
-      `}</style>
     </div>
   );
 }

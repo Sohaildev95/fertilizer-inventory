@@ -1065,34 +1065,6 @@ export default function VendorsPage() {
           )}
         </DialogContent>
       </Dialog>
-
-      {/* Print Specific CSS Rules */}
-      <style>{`
-        @media print {
-          body * {
-            visibility: hidden !important;
-          }
-          #printable-vendor-ledger,
-          #printable-vendor-ledger * {
-            visibility: visible !important;
-          }
-          #printable-vendor-ledger {
-            position: fixed !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: 100% !important;
-            margin: 0 !important;
-            padding: 16px !important;
-            background: white !important;
-            color: black !important;
-            display: block !important;
-          }
-          @page {
-            margin: 5mm;
-            size: auto;
-          }
-        }
-      `}</style>
     </div>
   );
 }

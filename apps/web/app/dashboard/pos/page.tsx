@@ -587,37 +587,6 @@ export default function POSPage() {
 
   return (
     <div className="space-y-4 animate-in fade-in duration-500 pb-10">
-      {/* Print Specific CSS Rules (80mm & 58mm Thermal Rolls) */}
-      <style>{`
-        @media print {
-          body * {
-            visibility: hidden !important;
-          }
-          #printable-thermal-receipt,
-          #printable-thermal-receipt * {
-            visibility: visible !important;
-          }
-          #printable-thermal-receipt {
-            position: fixed !important;
-            left: 0 !important;
-            top: 0 !important;
-            width: ${receiptWidth === '80mm' ? '76mm' : '54mm'} !important;
-            margin: 0 !important;
-            padding: 4px !important;
-            background: white !important;
-            color: black !important;
-            font-size: 11px !important;
-            box-shadow: none !important;
-            border: none !important;
-            display: block !important;
-          }
-          @page {
-            margin: 0;
-            size: auto;
-          }
-        }
-      `}</style>
-
       {/* Top Banner / Breadcrumb */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
         <div className="flex items-center gap-3">

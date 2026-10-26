@@ -55,4 +55,17 @@ export class ReportsController {
   getMarketUdhar() {
     return this.reportsService.getMarketUdhar();
   }
+
+  @Get('per-bag-margins')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary:
+      'Get Per-Bag Profit & Margin Analytics (Product-wise, Company-wise, Cash vs Credit)',
+  })
+  @ApiResponse({ status: 200, description: 'Per-bag profit analytics calculated' })
+  getPerBagMargins(@Query() query: QueryReportsDto) {
+    return this.reportsService.getPerBagMargins(query);
+  }
 }
+

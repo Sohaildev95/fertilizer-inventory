@@ -297,3 +297,131 @@ export interface PaginatedResponse<T> {
   limit: number;
   totalPages: number;
 }
+
+// ============================================
+// Fasli Udhaar & Crop Season Types (فصلی ادھار)
+// ============================================
+
+export enum CropSeasonType {
+  RABI = 'rabi',       // ربیع (Winter/Spring: Wheat/Gandum, Mustard/Sarson, Potato/Aloo)
+  KHARIF = 'kharif',   // خریف (Summer/Autumn: Cotton/Kapas, Rice/Dhan, Maize/Makai, Sugarcane)
+  ZAID = 'zaid',       // بہاریہ / زائد (Spring Corn, Sunflower, Seasonal Vegetables)
+}
+
+export interface CropSeasonCycle {
+  id: string;
+  customer_id: string;
+  crop_name: string;             // e.g. "گندم (Wheat 2026)"
+  crop_key: string;              // e.g. "wheat", "cotton", "rice", "maize", "sugarcane", "potato", "other"
+  season_type: CropSeasonType;
+  season_year: number;           // e.g. 2026
+  land_acreage: number;          // e.g. 25 Acres
+  sowing_date?: string;          // بجائی کی تاریخ
+  expected_harvest_date: string; // متوقع کٹائی و ادائیگی تاریخ (e.g. "2026-04-30")
+  expected_harvest_month: string;// e.g. "2026-04"
+  expected_amount: number;       // متوقع واجب الادا رقم
+  recovered_amount?: number;     // اب تک موصول شدہ
+  status: 'active' | 'harvested' | 'cleared' | 'overdue';
+  notes?: string;
+  created_at: string;
+}
+
+export interface FasliFarmerSummary {
+  customer_id: string;
+  customer_name: string;
+  phone: string;
+  village?: string;
+  cnic?: string;
+  crop_cycle_id: string;
+  crop_name: string;
+  season_type: CropSeasonType;
+  land_acreage: number;
+  expected_harvest_date: string;
+  expected_amount: number;
+  current_balance: number;
+  credit_limit: number;
+  status: 'active' | 'harvested' | 'cleared' | 'overdue';
+}
+
+export interface FasliHarvestForecastMonth {
+  monthKey: string;              // e.g. "2026-04"
+  monthUrdu: string;             // e.g. "اپریل ۲۰۲۶ (گندم کٹائی)"
+  monthEnglish: string;          // e.g. "April 2026"
+  seasonType: CropSeasonType;
+  totalReceivable: number;
+  farmerCount: number;
+  cropsSummary: Array<{ cropName: string; acres: number; amount: number }>;
+  farmers: FasliFarmerSummary[];
+}
+
+// ============================================
+// Per-Bag Profit & Margin Analytics Types (فی بوری منافع)
+// ============================================
+
+export interface ProductBagMargin {
+  id: string;
+  name: string;
+  urduName: string;
+  company: string;
+  unit: string;
+  bagsSold: number;
+  avgSalePrice: number;
+  avgCostPrice: number;
+  profitPerBag: number;
+  totalSaleAmount: number;
+  totalCostAmount: number;
+  totalProfit: number;
+  marginPercent: number;
+  cashBags: number;
+  creditBags: number;
+  profitRating: 'high' | 'medium' | 'low';
+}
+
+export interface CompanyMarginSummary {
+  company: string;
+  bagsSold: number;
+  revenue: number;
+  cost: number;
+  profit: number;
+  marginPercent: number;
+  avgProfitPerBag: number;
+}
+
+export interface PerBagMarginReport {
+  period: {
+    timeRange: string;
+    startDate: string;
+    endDate: string;
+    labelUrdu: string;
+    labelEn: string;
+  };
+  summary: {
+    totalBagsSold: number;
+    totalRevenue: number;
+    totalCost: number;
+    totalGrossProfit: number;
+    averageProfitPerBag: number;
+    overallMarginPercent: number;
+    cashVsCredit: {
+      cash: {
+        bags: number;
+        revenue: number;
+        profit: number;
+        avgProfitPerBag: number;
+        marginPercent: number;
+      };
+      credit: {
+        bags: number;
+        revenue: number;
+        profit: number;
+        avgProfitPerBag: number;
+        marginPercent: number;
+      };
+      creditMarginPremium: number;
+    };
+  };
+  topProducts: ProductBagMargin[];
+  companyWise: CompanyMarginSummary[];
+  productMargins: ProductBagMargin[];
+}
+

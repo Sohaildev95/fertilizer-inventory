@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Put,
+  Delete,
   Body,
   Param,
   Query,
@@ -14,6 +15,7 @@ import { CustomersService } from './customers.service.js';
 import { CreateCustomerDto } from './dto/create-customer.dto.js';
 import { QueryCustomersDto } from './dto/query-customers.dto.js';
 import { CreatePaymentDto } from './dto/create-payment.dto.js';
+import { AddCropCycleDto } from './dto/crop-cycle.dto.js';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard.js';
 
 @ApiTags('customers')
@@ -26,6 +28,13 @@ export class CustomersController {
   @ApiResponse({ status: 200, description: 'Summary stats returned' })
   getSummaryStats() {
     return this.customersService.getSummaryStats();
+  }
+
+  @Get('fasli-udhaar/forecast')
+  @ApiOperation({ summary: 'Get seasonal Fasli Udhaar harvest recovery forecast' })
+  @ApiResponse({ status: 200, description: 'Harvest forecast returned' })
+  getFasliForecast() {
+    return this.customersService.getFasliForecast();
   }
 
   @Get()
@@ -82,5 +91,36 @@ export class CustomersController {
   ) {
     const userId = req.user?.id;
     return this.customersService.recordPayment(id, dto, userId);
+  }
+
+  @Get(':id/crop-cycles')
+  @ApiOperation({ summary: 'Get all crop cycles for a specific farmer' })
+  @ApiResponse({ status: 200, description: 'Farmer crop cycles returned' })
+  getFarmerCropCycles(@Param('id') id: string) {
+    return this.customersService.getFarmerCropCycles(id);
+  }
+
+  @Post(':id/crop-cycles')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Add or update crop season cycle for a farmer' })
+  @ApiResponse({ status: 201, description: 'Crop season cycle added successfully' })
+  addFarmerCropCycle(
+    @Param('id') id: string,
+    @Body() dto: AddCropCycleDto,
+  ) {
+    return this.customersService.addFarmerCropCycle(id, dto);
+  }
+
+  @Delete(':id/crop-cycles/:cycleId')
+  @UseGuards(OptionalJwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete a crop cycle for a farmer' })
+  @ApiResponse({ status: 200, description: 'Crop cycle removed' })
+  deleteFarmerCropCycle(
+    @Param('id') id: string,
+    @Param('cycleId') cycleId: string,
+  ) {
+    return this.customersService.deleteFarmerCropCycle(id, cycleId);
   }
 }

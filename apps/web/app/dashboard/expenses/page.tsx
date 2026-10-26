@@ -900,29 +900,6 @@ export default function ExpensesPage() {
           )}
         </DialogContent>
       </Dialog>
-
-      {/* Print styles */}
-      <style>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          #printable-expense-voucher,
-          #printable-expense-voucher * {
-            visibility: visible;
-          }
-          #printable-expense-voucher {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            margin: 0;
-            padding: 20px;
-            background: white !important;
-            color: black !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

@@ -4,6 +4,11 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLanguage } from '../../../lib/language-context';
 import { apiRequest } from '../../../lib/api-client';
 import {
+  PerBagMarginReport,
+  ProductBagMargin,
+  CompanyMarginSummary,
+} from '@fertilizer/shared';
+import {
   FileBarChart2,
   TrendingUp,
   TrendingDown,
@@ -29,6 +34,9 @@ import {
   Boxes,
   BadgeAlert,
   CheckCircle2,
+  Coins,
+  Award,
+  Flame,
 } from 'lucide-react';
 import {
   Select,
@@ -155,14 +163,16 @@ export default function ReportsPage() {
   const { isUrdu } = useLanguage();
 
   // Active Tab
-  const [activeTab, setActiveTab] = useState<'profit_loss' | 'roznamcha' | 'stock' | 'udhar'>('profit_loss');
+  const [activeTab, setActiveTab] = useState<'profit_loss' | 'margins' | 'roznamcha' | 'stock' | 'udhar'>('profit_loss');
 
   // Filters
   const [timeRange, setTimeRange] = useState('this_month');
+  const [companyFilter, setCompanyFilter] = useState('all');
   const [roznamchaDate, setRoznamchaDate] = useState(new Date().toISOString().slice(0, 10));
 
   // States
   const [plData, setPlData] = useState<ProfitLossData | null>(null);
+  const [marginsData, setMarginsData] = useState<PerBagMarginReport | null>(null);
   const [roznamchaData, setRoznamchaData] = useState<RoznamchaData | null>(null);
   const [stockData, setStockData] = useState<StockValuationData | null>(null);
   const [udharData, setUdharData] = useState<MarketUdharData | null>(null);
@@ -175,14 +185,18 @@ export default function ReportsPage() {
     setIsLoading(true);
     setErrorMsg(null);
     try {
-      const [plRes, rozRes, stockRes, udharRes] = await Promise.all([
+      const [plRes, marginsRes, rozRes, stockRes, udharRes] = await Promise.all([
         apiRequest<ProfitLossData>(`/reports/profit-loss?timeRange=${timeRange}`),
+        apiRequest<PerBagMarginReport>(
+          `/reports/per-bag-margins?timeRange=${timeRange}&company=${companyFilter}`,
+        ),
         apiRequest<RoznamchaData>(`/reports/roznamcha?date=${roznamchaDate}`),
         apiRequest<StockValuationData>('/reports/stock-valuation'),
         apiRequest<MarketUdharData>('/reports/market-udhar'),
       ]);
 
       setPlData(plRes);
+      setMarginsData(marginsRes);
       setRoznamchaData(rozRes);
       setStockData(stockRes);
       setUdharData(udharRes);
@@ -192,7 +206,7 @@ export default function ReportsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [timeRange, roznamchaDate]);
+  }, [timeRange, companyFilter, roznamchaDate]);
 
   useEffect(() => {
     loadReports();
@@ -234,8 +248,8 @@ export default function ReportsPage() {
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-emerald-600' : ''}`} />
           </button>
 
-          {/* Time Range Filter (For P&L Tab) */}
-          {activeTab === 'profit_loss' && (
+          {/* Time Range Filter (For P&L & Margins Tab) */}
+          {(activeTab === 'profit_loss' || activeTab === 'margins') && (
             <div className="w-[180px]">
               <Select value={timeRange} onValueChange={setTimeRange}>
                 <SelectTrigger className="w-full bg-white border-slate-300 text-xs sm:text-sm h-[40px] rounded-xl shadow-sm">
@@ -246,6 +260,25 @@ export default function ReportsPage() {
                   <SelectItem value="this_week">{isUrdu ? 'موجودہ ہفتہ' : 'This Week'}</SelectItem>
                   <SelectItem value="this_month">{isUrdu ? 'موجودہ ماہ' : 'This Month'}</SelectItem>
                   <SelectItem value="season">{isUrdu ? 'سیزن ربیع ۲۰۲۶' : 'Rabi Season 2026'}</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Company Filter (For Margins Tab) */}
+          {activeTab === 'margins' && (
+            <div className="w-[180px]">
+              <Select value={companyFilter} onValueChange={setCompanyFilter}>
+                <SelectTrigger className="w-full bg-white border-slate-300 text-xs sm:text-sm h-[40px] rounded-xl shadow-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white border-slate-200 z-[120]">
+                  <SelectItem value="all">{isUrdu ? 'تمام کمپنیاں' : 'All Companies'}</SelectItem>
+                  <SelectItem value="FFC">FFC (سونا کھاد)</SelectItem>
+                  <SelectItem value="Engro">Engro (اینگرو)</SelectItem>
+                  <SelectItem value="Fatima">Fatima (سرسبز)</SelectItem>
+                  <SelectItem value="Bayer">Bayer (بائر سپرے)</SelectItem>
+                  <SelectItem value="Syngenta">Syngenta (سنجینٹا)</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -291,6 +324,18 @@ export default function ReportsPage() {
         >
           <TrendingUp className="w-4 h-4" />
           <span>{isUrdu ? 'نفع و نقصان رپورٹ (P&L)' : 'Profit & Loss Statement'}</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('margins')}
+          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition ${
+            activeTab === 'margins'
+              ? 'bg-rose-600 text-white shadow-md shadow-rose-600/20'
+              : 'bg-white hover:bg-slate-50 text-slate-700 border border-slate-200'
+          }`}
+        >
+          <Percent className="w-4 h-4" />
+          <span>{isUrdu ? 'فی بوری خالص منافع و مارجن' : 'Per-Bag Profit & Margins'}</span>
         </button>
 
         <button
@@ -844,6 +889,375 @@ export default function ReportsPage() {
             </div>
           )}
 
+          {/* ================================================================= */}
+          {/* TAB 5: PER-BAG PROFIT & MARGIN ANALYTICS (فی بوری خالص منافع)       */}
+          {/* ================================================================= */}
+          {activeTab === 'margins' && marginsData && (
+            <div className="space-y-6 animate-in fade-in duration-300">
+              {/* 1. Top 4 Profit Margin KPI Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Average Profit Per Bag */}
+                <div className="bg-gradient-to-br from-rose-500 to-rose-600 rounded-2xl p-5 text-white shadow-md shadow-rose-500/20 relative overflow-hidden group">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-rose-100">
+                      {isUrdu ? 'اوسط خالص منافع فی بوری' : 'Avg Profit Per Bag'}
+                    </span>
+                    <div className="p-2 bg-white/20 rounded-lg">
+                      <Coins className="w-5 h-5 text-white" />
+                    </div>
+                  </div>
+                  <div className="text-3xl font-black font-mono">
+                    Rs. {marginsData.summary.averageProfitPerBag.toLocaleString()}
+                    <span className="text-sm font-normal text-rose-100"> / {isUrdu ? 'بوری' : 'bag'}</span>
+                  </div>
+                  <p className="text-[11px] text-rose-100 mt-1">
+                    {isUrdu
+                      ? `مجموعی اوسط مارجن: ${marginsData.summary.overallMarginPercent}%`
+                      : `Overall margin rate: ${marginsData.summary.overallMarginPercent}%`}
+                  </p>
+                </div>
+
+                {/* Total Bags Sold */}
+                <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm relative overflow-hidden">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      {isUrdu ? 'کل فروخت شدہ بوریاں' : 'Total Bags Sold'}
+                    </span>
+                    <div className="p-2 bg-blue-100 rounded-lg text-blue-700">
+                      <Package className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <div className="text-3xl font-black text-slate-900 font-mono">
+                    {marginsData.summary.totalBagsSold.toLocaleString()}{' '}
+                    <span className="text-sm font-normal text-slate-500">{isUrdu ? 'بوریاں' : 'Bags'}</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    {isUrdu
+                      ? `کل سیلز ریونیو: ${formatCurrency(marginsData.summary.totalRevenue)}`
+                      : `Total Revenue: ${formatCurrency(marginsData.summary.totalRevenue)}`}
+                  </p>
+                </div>
+
+                {/* Gross Profit on Bags */}
+                <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm relative overflow-hidden">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      {isUrdu ? 'بوریاں بیچ کر حاصل شدہ منافع' : 'Gross Profit on Bags'}
+                    </span>
+                    <div className="p-2 bg-emerald-100 rounded-lg text-emerald-700">
+                      <TrendingUp className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <div className="text-3xl font-black text-emerald-600 font-mono">
+                    {formatCurrency(marginsData.summary.totalGrossProfit)}
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    {isUrdu
+                      ? `خریداری لاگت: ${formatCurrency(marginsData.summary.totalCost)}`
+                      : `Cost of goods: ${formatCurrency(marginsData.summary.totalCost)}`}
+                  </p>
+                </div>
+
+                {/* Udhaar Margin Premium */}
+                <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm relative overflow-hidden">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      {isUrdu ? 'فصلی ادھار منافع پریمیم' : 'Udhaar Margin Premium'}
+                    </span>
+                    <div className="p-2 bg-purple-100 rounded-lg text-purple-700">
+                      <Sparkles className="w-5 h-5" />
+                    </div>
+                  </div>
+                  <div className="text-3xl font-black text-purple-700 font-mono">
+                    +{formatCurrency(marginsData.summary.cashVsCredit.creditMarginPremium)}
+                    <span className="text-sm font-normal text-slate-500"> / {isUrdu ? 'بوری' : 'bag'}</span>
+                  </div>
+                  <p className="text-[11px] text-slate-500 mt-1">
+                    {isUrdu
+                      ? `نقد اوسط: Rs. ${marginsData.summary.cashVsCredit.cash.avgProfitPerBag} | ادھار: Rs. ${marginsData.summary.cashVsCredit.credit.avgProfitPerBag}`
+                      : `Cash avg: Rs. ${marginsData.summary.cashVsCredit.cash.avgProfitPerBag} vs Credit: Rs. ${marginsData.summary.cashVsCredit.credit.avgProfitPerBag}`}
+                  </p>
+                </div>
+              </div>
+
+              {/* 2. Cash vs Udhaar (Credit) Comparison Card */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Cash Sales Card */}
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700">
+                        <Wallet className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900">
+                          {isUrdu ? 'نقد کاؤنٹر سیلز (Cash Sales)' : 'Cash Counter Sales'}
+                        </h4>
+                        <span className="text-xs text-slate-500">
+                          {marginsData.summary.cashVsCredit.cash.bags} {isUrdu ? 'بوریاں فروخت' : 'bags sold'}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 font-mono">
+                      {marginsData.summary.cashVsCredit.cash.marginPercent}% {isUrdu ? 'مارجن' : 'margin'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3 pt-4 text-center">
+                    <div className="p-2.5 rounded-xl bg-slate-50">
+                      <span className="text-[11px] text-slate-500 block mb-0.5">
+                        {isUrdu ? 'کل سیلز' : 'Revenue'}
+                      </span>
+                      <span className="text-xs sm:text-sm font-bold font-mono text-slate-800">
+                        {formatCurrency(marginsData.summary.cashVsCredit.cash.revenue)}
+                      </span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-emerald-50/60">
+                      <span className="text-[11px] text-slate-600 block mb-0.5">
+                        {isUrdu ? 'خالص منافع' : 'Net Profit'}
+                      </span>
+                      <span className="text-xs sm:text-sm font-bold font-mono text-emerald-700">
+                        {formatCurrency(marginsData.summary.cashVsCredit.cash.profit)}
+                      </span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-slate-50">
+                      <span className="text-[11px] text-slate-500 block mb-0.5">
+                        {isUrdu ? 'اوسط فی بوری' : 'Per Bag'}
+                      </span>
+                      <span className="text-xs sm:text-sm font-black font-mono text-slate-900">
+                        Rs. {marginsData.summary.cashVsCredit.cash.avgProfitPerBag}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Credit / Udhaar Sales Card */}
+                <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-purple-50 text-purple-700">
+                        <Users className="w-5 h-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-slate-900">
+                          {isUrdu ? 'فصلی ادھار سیلز (Farmer Khata Credit)' : 'Farmer Credit Sales'}
+                        </h4>
+                        <span className="text-xs text-slate-500">
+                          {marginsData.summary.cashVsCredit.credit.bags} {isUrdu ? 'بوریاں فصلی ادھار' : 'bags on credit'}
+                        </span>
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-purple-100 text-purple-800 font-mono">
+                      {marginsData.summary.cashVsCredit.credit.marginPercent}% {isUrdu ? 'مارجن' : 'margin'}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3 pt-4 text-center">
+                    <div className="p-2.5 rounded-xl bg-slate-50">
+                      <span className="text-[11px] text-slate-500 block mb-0.5">
+                        {isUrdu ? 'کل سیلز' : 'Revenue'}
+                      </span>
+                      <span className="text-xs sm:text-sm font-bold font-mono text-slate-800">
+                        {formatCurrency(marginsData.summary.cashVsCredit.credit.revenue)}
+                      </span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-purple-50/60">
+                      <span className="text-[11px] text-slate-600 block mb-0.5">
+                        {isUrdu ? 'خالص منافع' : 'Net Profit'}
+                      </span>
+                      <span className="text-xs sm:text-sm font-bold font-mono text-purple-700">
+                        {formatCurrency(marginsData.summary.cashVsCredit.credit.profit)}
+                      </span>
+                    </div>
+                    <div className="p-2.5 rounded-xl bg-purple-50">
+                      <span className="text-[11px] text-slate-600 block mb-0.5">
+                        {isUrdu ? 'اوسط فی بوری' : 'Per Bag'}
+                      </span>
+                      <span className="text-xs sm:text-sm font-black font-mono text-purple-900">
+                        Rs. {marginsData.summary.cashVsCredit.credit.avgProfitPerBag}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 3. Company-wise Margin Breakdown Grid */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5 space-y-4">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div>
+                    <h3 className={`text-base font-bold text-slate-900 ${isUrdu ? 'font-urdu' : ''}`}>
+                      {isUrdu ? 'کمپنی و برانڈ وائز منافع و مارجن' : 'Company & Brand Profit Margins'}
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      {isUrdu
+                        ? 'مختلف فرٹیلائزر و پیسٹی سائیڈ کمپنیوں پر حاصل ہونے والے منافع کا تقابلی جائزہ'
+                        : 'Comparison of margins and volumes across FFC, Engro, Fatima, Bayer, Syngenta.'}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {(marginsData.companyWise || []).map((comp) => {
+                    const isHigh = comp.marginPercent >= 10;
+                    const isMed = comp.marginPercent >= 5;
+                    return (
+                      <div
+                        key={comp.company}
+                        className="p-4 rounded-2xl border border-slate-200/80 bg-slate-50/50 hover:bg-slate-50 transition"
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-bold text-sm text-slate-900 truncate max-w-[170px]">
+                            {comp.company}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded-md text-[11px] font-bold font-mono ${
+                              isHigh
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : isMed
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-slate-200 text-slate-700'
+                            }`}
+                          >
+                            {comp.marginPercent}%
+                          </span>
+                        </div>
+
+                        <div className="flex items-baseline justify-between mt-3 text-xs">
+                          <span className="text-slate-500">{isUrdu ? 'فروخت شدہ بوریاں:' : 'Bags Sold:'}</span>
+                          <span className="font-mono font-bold text-slate-800">
+                            {comp.bagsSold.toLocaleString()}
+                          </span>
+                        </div>
+
+                        <div className="flex items-baseline justify-between mt-1 text-xs">
+                          <span className="text-slate-500">{isUrdu ? 'اوسط منافع فی بوری:' : 'Profit / Bag:'}</span>
+                          <span className="font-mono font-bold text-emerald-700">
+                            Rs. {comp.avgProfitPerBag.toLocaleString()}
+                          </span>
+                        </div>
+
+                        <div className="flex items-baseline justify-between mt-1 text-xs">
+                          <span className="text-slate-500">{isUrdu ? 'مجموعی حاصل منافع:' : 'Total Profit:'}</span>
+                          <span className="font-mono font-black text-slate-900">
+                            {formatCurrency(comp.profit)}
+                          </span>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="w-full h-1.5 bg-slate-200 rounded-full mt-3 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${
+                              isHigh ? 'bg-emerald-500' : isMed ? 'bg-blue-500' : 'bg-slate-400'
+                            }`}
+                            style={{ width: `${Math.min(100, comp.marginPercent * 5)}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* 4. Detailed Product Margin Table */}
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div className="p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h3 className={`text-base font-bold text-slate-900 ${isUrdu ? 'font-urdu' : ''}`}>
+                      {isUrdu ? 'فی بوری و فی پراڈکٹ تفصیلی منافع ٹیبل' : 'Product-wise Per-Bag Margin Statement'}
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      {isUrdu
+                        ? 'ہر کھاد اور زرعی دوا کی خریداری، فروخت اور خالص منافع فی بوری کی مکمل تفصیل'
+                        : 'Comprehensive line-item profitability audit for each fertilizer brand.'}
+                    </p>
+                  </div>
+
+                  <span className="text-xs font-semibold px-3 py-1 rounded-full bg-slate-100 text-slate-700">
+                    {marginsData.productMargins.length} {isUrdu ? 'پراڈکٹس لسٹڈ' : 'Products Listed'}
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse whitespace-nowrap">
+                    <thead>
+                      <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                        <th className="py-3.5 px-4">{isUrdu ? 'کھاد / پراڈکٹ' : 'Product'}</th>
+                        <th className="py-3.5 px-4">{isUrdu ? 'کمپنی' : 'Company'}</th>
+                        <th className="py-3.5 px-4 text-center">{isUrdu ? 'فروخت شدہ' : 'Qty Sold'}</th>
+                        <th className="py-3.5 px-4 text-right">{isUrdu ? 'اوسط لاگت خرید' : 'Avg Cost'}</th>
+                        <th className="py-3.5 px-4 text-right">{isUrdu ? 'اوسط فروخت ریٹ' : 'Avg Sale'}</th>
+                        <th className="py-3.5 px-4 text-right bg-rose-50/50 text-rose-900">
+                          {isUrdu ? 'خالص منافع / بوری' : 'Profit / Bag'}
+                        </th>
+                        <th className="py-3.5 px-4 text-center">{isUrdu ? 'مارجن شرح' : 'Margin %'}</th>
+                        <th className="py-3.5 px-4 text-center">{isUrdu ? 'نقد / ادھار' : 'Cash / Credit'}</th>
+                        <th className="py-3.5 px-4 text-right">{isUrdu ? 'کل خالص منافع' : 'Total Profit'}</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 text-xs sm:text-sm">
+                      {marginsData.productMargins.map((prod, idx) => {
+                        const isTop = idx < 3;
+                        return (
+                          <tr key={prod.id} className="hover:bg-slate-50/70 transition-colors">
+                            <td className="py-3.5 px-4 font-bold text-slate-900">
+                              <div className="flex items-center gap-2">
+                                {isTop && (
+                                  <span className="p-1 rounded-md bg-amber-100 text-amber-800 text-[10px] font-black">
+                                    ★ #{idx + 1}
+                                  </span>
+                                )}
+                                <div>
+                                  <span>{isUrdu ? prod.urduName : prod.name}</span>
+                                  <span className="block text-[11px] font-normal text-slate-400">
+                                    {prod.unit}
+                                  </span>
+                                </div>
+                              </div>
+                            </td>
+                            <td className="py-3.5 px-4 text-slate-600 font-medium">{prod.company}</td>
+                            <td className="py-3.5 px-4 text-center font-mono font-bold text-slate-800">
+                              {prod.bagsSold.toLocaleString()}
+                            </td>
+                            <td className="py-3.5 px-4 text-right font-mono text-slate-500">
+                              {formatCurrency(prod.avgCostPrice)}
+                            </td>
+                            <td className="py-3.5 px-4 text-right font-mono text-slate-800 font-semibold">
+                              {formatCurrency(prod.avgSalePrice)}
+                            </td>
+                            <td className="py-3.5 px-4 text-right font-mono font-black text-rose-600 bg-rose-50/40 text-sm">
+                              +{formatCurrency(prod.profitPerBag)}
+                            </td>
+                            <td className="py-3.5 px-4 text-center">
+                              <span
+                                className={`px-2 py-0.5 rounded-full text-xs font-bold font-mono ${
+                                  prod.profitRating === 'high'
+                                    ? 'bg-emerald-100 text-emerald-800'
+                                    : prod.profitRating === 'medium'
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : 'bg-slate-100 text-slate-700'
+                                }`}
+                              >
+                                {prod.marginPercent}%
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 text-center font-mono text-xs text-slate-600">
+                              <span className="text-emerald-700 font-bold">{prod.cashBags}</span>
+                              <span className="text-slate-300 mx-1">/</span>
+                              <span className="text-purple-700 font-bold">{prod.creditBags}</span>
+                            </td>
+                            <td className="py-3.5 px-4 text-right font-mono font-black text-emerald-600 text-sm">
+                              {formatCurrency(prod.totalProfit)}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Printable Signatures Footer (Only for Print) */}
           <div className="hidden print:grid grid-cols-2 gap-12 pt-12 border-t border-dashed border-slate-300 text-center text-xs">
             <div>
@@ -861,29 +1275,6 @@ export default function ReportsPage() {
           </div>
         </div>
       )}
-
-      {/* Global Print Styling */}
-      <style>{`
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          #printable-audit-report,
-          #printable-audit-report * {
-            visibility: visible;
-          }
-          #printable-audit-report {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            margin: 0;
-            padding: 20px;
-            background: white !important;
-            color: black !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

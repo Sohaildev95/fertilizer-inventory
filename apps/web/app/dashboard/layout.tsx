@@ -42,6 +42,7 @@ const navItems: NavItem[] = [
   { name: 'Purchases', urduName: 'مال کی خریداری', href: '/dashboard/purchases', icon: Truck },
   { name: 'Customers & Khata', urduName: 'زمیندار کھاتہ رجسٹر', href: '/dashboard/customers', icon: Users },
   { name: 'Vendors (Suppliers)', urduName: 'سپلائرز و کمپنیاں', href: '/dashboard/vendors', icon: Building2 },
+  { name: 'Vendor Portal', urduName: 'کھاد کمپنی پورٹل', href: '/dashboard/vendors/portal', icon: Shield, badge: 'PORTAL' },
   { name: 'Daily Expenses', urduName: 'روزانہ کا خرچہ', href: '/dashboard/expenses', icon: DollarSign },
   { name: 'Reports & Profit', urduName: 'نفع و نقصان رپورٹس', href: '/dashboard/reports', icon: FileBarChart2 },
   { name: 'User Manual & Guide', urduName: 'رہنمائی و یوزر مینوئل', href: '/dashboard/guide', icon: BookOpen, badge: 'GUIDE' },
@@ -224,8 +225,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                       fontSize: '9.5px',
                       fontWeight: '800',
                       borderRadius: '999px',
-                      background: '#f59e0b',
-                      color: '#78350f',
+                      background: item.badge === 'PORTAL' ? '#8b5cf6' : item.badge === 'FAST' ? '#f59e0b' : '#059669',
+                      color: item.badge === 'FAST' ? '#78350f' : '#ffffff',
                     }}
                   >
                     {item.badge}
