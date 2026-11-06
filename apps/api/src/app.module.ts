@@ -9,6 +9,7 @@ import { VendorsModule } from './vendors/vendors.module.js';
 import { PurchasesModule } from './purchases/purchases.module.js';
 import { ExpensesModule } from './expenses/expenses.module.js';
 import { ReportsModule } from './reports/reports.module.js';
+import { CampaignsModule } from './campaigns/campaigns.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 
@@ -46,6 +47,9 @@ import { AppService } from './app.service.js';
 
     // Financial Reports & Daily Roznamcha Module
     ReportsModule,
+
+    // Bulk WhatsApp & SMS Broadcast Module
+    CampaignsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -425,3 +425,64 @@ export interface PerBagMarginReport {
   productMargins: ProductBagMargin[];
 }
 
+// ============================================
+// Bulk WhatsApp & SMS Broadcast Types (پیغامات و براڈکاسٹ)
+// ============================================
+
+export type BroadcastChannel = 'whatsapp' | 'sms' | 'both';
+
+export type BroadcastAudienceType =
+  | 'all_farmers'
+  | 'debtors_only'
+  | 'village'
+  | 'crop_farmers'
+  | 'custom_selection';
+
+export type BroadcastTemplateType =
+  | 'stock_arrival'
+  | 'rate_update'
+  | 'recovery_reminder'
+  | 'pest_alert'
+  | 'custom';
+
+export interface BroadcastMessageTemplate {
+  key: BroadcastTemplateType;
+  title: string;
+  titleUrdu: string;
+  icon: string;
+  category: 'inventory' | 'rates' | 'recovery' | 'advisory' | 'general';
+  defaultUrdu: string;
+  defaultEn: string;
+}
+
+export interface BroadcastRecipient {
+  id: string;
+  name: string;
+  fatherName?: string;
+  phone: string;
+  village: string;
+  currentCrop?: string;
+  balance: number;
+  creditLimit: number;
+  selected: boolean;
+  whatsappLink?: string;
+  smsUri?: string;
+  status: 'pending' | 'sent' | 'failed' | 'skipped';
+}
+
+export interface BroadcastCampaign {
+  id: string;
+  title: string;
+  channel: BroadcastChannel;
+  audienceType: BroadcastAudienceType;
+  filterVillage?: string;
+  filterCrop?: string;
+  messageText: string;
+  totalRecipients: number;
+  sentCount: number;
+  status: 'draft' | 'completed' | 'queued';
+  createdAt: string;
+  recipients?: BroadcastRecipient[];
+}
+
+

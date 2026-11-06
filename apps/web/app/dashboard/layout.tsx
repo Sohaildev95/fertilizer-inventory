@@ -23,6 +23,7 @@ import {
   Shield,
   ChevronDown,
   BookOpen,
+  Megaphone,
 } from 'lucide-react';
 import { useLanguage } from '../../lib/language-context';
 import { LanguageToggle } from '../../components/language-toggle';
@@ -41,6 +42,7 @@ const navItems: NavItem[] = [
   { name: 'Products & Stock', urduName: 'کھاد اسٹاک و پراڈکٹس', href: '/dashboard/products', icon: Package },
   { name: 'Purchases', urduName: 'مال کی خریداری', href: '/dashboard/purchases', icon: Truck },
   { name: 'Customers & Khata', urduName: 'زمیندار کھاتہ رجسٹر', href: '/dashboard/customers', icon: Users },
+  { name: 'Broadcast & SMS', urduName: 'پیغامات و براڈکاسٹ', href: '/dashboard/broadcast', icon: Megaphone, badge: 'SMS' },
   { name: 'Vendors (Suppliers)', urduName: 'سپلائرز و کمپنیاں', href: '/dashboard/vendors', icon: Building2 },
   { name: 'Vendor Portal', urduName: 'کھاد کمپنی پورٹل', href: '/dashboard/vendors/portal', icon: Shield, badge: 'PORTAL' },
   { name: 'Daily Expenses', urduName: 'روزانہ کا خرچہ', href: '/dashboard/expenses', icon: DollarSign },

@@ -201,3 +201,66 @@ export const PAKISTANI_CROPS: CropDefinition[] = [
     icon: '🌿',
   },
 ];
+
+// ============================================
+// Default Pakistani Agri-Dealer Broadcast Message Templates
+// ============================================
+
+export const DEFAULT_BROADCAST_TEMPLATES = [
+  {
+    key: 'stock_arrival',
+    title: 'New Stock Arrival Alert',
+    titleUrdu: 'کھاد کا نیا سٹاک آمد الرٹ',
+    icon: '🚚',
+    category: 'inventory',
+    defaultUrdu:
+      'محترم کسان بھائی! السلام علیکم، پنجاب کھاد ایجنسی پر سونا یوریا، اینگرو ڈی اے پی اور پوٹاش کی نئی گاڑی پہنچ چکی ہے۔ معیاری اور تازہ مال کے لیے جلد تشریف لائیں تاکہ اپنا کوٹہ حاصل کر سکیں۔ شکریہ!',
+    defaultEn:
+      'Dear Farmer, Fresh consignment of Sona Urea and Engro DAP has arrived at Punjab Fertilizer Agency. Visit soon to collect your seasonal allocation.',
+  },
+  {
+    key: 'rate_update',
+    title: 'Official Fertilizer Rates',
+    titleUrdu: 'سرکاری نرخ نامہ و ریٹ لسٹ',
+    icon: '🏷️',
+    category: 'rates',
+    defaultUrdu:
+      'محترم زمیندار بھائی! پنجاب کھاد ایجنسی کی تازہ ترین کنٹرول ریٹ لسٹ: سونا یوریا 4,450 روپے، اینگرو ڈی اے پی 12,400 روپے، سرسبز کین گوارا 3,800 روپے۔ تمام مال اصل کمپنی پیکنگ میں دستیاب ہے۔',
+    defaultEn:
+      'Latest Official Fertilizer Rates: Sona Urea Rs. 4,450, Engro DAP Rs. 12,400, Sarsabz CAN Rs. 3,800 at Punjab Fertilizer Agency.',
+  },
+  {
+    key: 'recovery_reminder',
+    title: 'Fasli Udhaar Harvest Recovery',
+    titleUrdu: 'فصلی ادھار و کٹائی پر ادائیگی یاد دہانی',
+    icon: '🌾',
+    category: 'recovery',
+    defaultUrdu:
+      'محترم کسان صاحب! امید ہے فصل کی کٹائی خیر و عافیت سے مکمل ہو چکی ہوگی۔ گزارش ہے کہ پنجاب کھاد ایجنسی تشریف لا کر اپنا فصلی کھاتہ و بقایا واجبات کلیئر فرما لیں تاکہ آئندہ سیزن میں بلا تعطل مال مل سکے۔ شکریہ!',
+    defaultEn:
+      'Dear Farmer, Congratulations on the harvest. Please visit Punjab Fertilizer Agency to clear your pending seasonal khata balance. Thank you!',
+  },
+  {
+    key: 'pest_alert',
+    title: 'Pest Advisory & Spray Alert',
+    titleUrdu: 'زرعی مشورہ و سپرے الرٹ',
+    icon: '🐛',
+    category: 'advisory',
+    defaultUrdu:
+      'زرعی الرٹ: فصل پر کیڑے مکوڑے و سنڈی کے خطرے کے پیشِ نظر مستند کمپنی سپرے (بیلٹ، نیٹایوو، کوراژن) پنجاب کھاد ایجنسی پر دستیاب ہیں۔ ماہرانہ مشورے کے ساتھ حاصل کریں۔ رابطہ: 0300-1234567',
+    defaultEn:
+      'Agri Advisory Alert: Protect your crop from pests. Original Bayer & Syngenta pesticides available at Punjab Fertilizer Agency with expert agronomy guidance.',
+  },
+  {
+    key: 'custom',
+    title: 'Custom Announcement',
+    titleUrdu: 'خصوصی / اپنی مرضی کا اعلان',
+    icon: '📢',
+    category: 'general',
+    defaultUrdu:
+      'محترم کسان بھائی! پنجاب کھاد ایجنسی کی جانب سے خصوصی اطلاع: کل صبح 8 بجے سے کاؤنٹر کھلا رہے گا۔ تشریف لائیں یا فون پر رابطہ کریں۔ شکریہ!',
+    defaultEn:
+      'Special Announcement from Punjab Fertilizer Agency: Shop open from 8:00 AM tomorrow. Contact 0300-1234567 for inquiries.',
+  },
+];
+
