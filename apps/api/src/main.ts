@@ -18,7 +18,7 @@ async function bootstrap() {
       : frontendUrl.includes(',')
         ? frontendUrl.split(',').map((u) => u.trim())
         : frontendUrl
-    : ['http://localhost:3000', 'http://localhost:3001'];
+    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:8081', 'http://localhost:19006'];
 
   app.enableCors({
     origin: allowedOrigins,

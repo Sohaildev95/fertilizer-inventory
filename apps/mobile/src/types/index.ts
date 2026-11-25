@@ -30,6 +30,7 @@ export interface MobileCustomer {
   totalBalance: number;
   creditLimit: number;
   guarantorName?: string;
+  currentCrop?: string;
 }
 
 export interface MobileSaleRecord {
@@ -58,6 +59,17 @@ export interface MobileSaleRecord {
   isSynced: boolean;
 }
 
+export interface MobilePaymentRecord {
+  id: string;
+  customerId: string;
+  customerName: string;
+  amount: number;
+  paymentMethod: 'cash' | 'bank_transfer' | 'cheque';
+  notes?: string;
+  createdAt: string;
+  isSynced: boolean;
+}
+
 export interface MobileStockLog {
   id: string;
   productId: string;
@@ -69,4 +81,10 @@ export interface MobileStockLog {
   timestamp: string;
 }
 
-export type MobileTab = 'pos' | 'scanner' | 'khata' | 'stock';
+export interface MobileSyncStats {
+  lastSyncedAt: string | null;
+  serverReachable: boolean;
+  apiBaseUrl: string;
+}
+
+export type MobileTab = 'pos' | 'scanner' | 'khata' | 'stock' | 'fasli';

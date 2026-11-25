@@ -24,6 +24,7 @@ import {
   ChevronDown,
   BookOpen,
   Megaphone,
+  QrCode,
 } from 'lucide-react';
 import { useLanguage } from '../../lib/language-context';
 import { LanguageToggle } from '../../components/language-toggle';
@@ -40,6 +41,7 @@ const navItems: NavItem[] = [
   { name: 'Dashboard', urduName: 'ڈیش بورڈ', href: '/dashboard', icon: LayoutDashboard },
   { name: 'POS Counter', urduName: 'کاؤنٹر سیل (پرچی)', href: '/dashboard/pos', icon: ShoppingCart, badge: 'FAST' },
   { name: 'Products & Stock', urduName: 'کھاد اسٹاک و پراڈکٹس', href: '/dashboard/products', icon: Package },
+  { name: 'Barcodes & Stickers', urduName: 'بارکوڈ و اسٹیکر پرنٹ', href: '/dashboard/barcodes', icon: QrCode, badge: 'PRINT' },
   { name: 'Purchases', urduName: 'مال کی خریداری', href: '/dashboard/purchases', icon: Truck },
   { name: 'Customers & Khata', urduName: 'زمیندار کھاتہ رجسٹر', href: '/dashboard/customers', icon: Users },
   { name: 'Broadcast & SMS', urduName: 'پیغامات و براڈکاسٹ', href: '/dashboard/broadcast', icon: Megaphone, badge: 'SMS' },
@@ -114,9 +116,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           flexShrink: 0,
           overflow: 'hidden',
         }}
-        className={`fixed lg:static inset-y-0 start-0 h-screen transition-transform duration-300 ease-in-out ${
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
-        }`}
+        className={`fixed lg:static inset-y-0 start-0 h-screen transition-transform duration-300 ease-in-out ${sidebarOpen
+          ? 'translate-x-0 pointer-events-auto visible'
+          : '-translate-x-full rtl:translate-x-full lg:translate-x-0 pointer-events-none invisible lg:pointer-events-auto lg:visible'
+          }`}
       >
         {/* Top Brand (Pinned) */}
         <div
@@ -334,13 +337,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             {/* Hamburger Button on Mobile/Tablet (< 1024px) */}
             <button
               onClick={() => setSidebarOpen(true)}
-              className="lg:hidden p-2 -ml-1 rounded-xl text-slate-700 hover:bg-slate-100 transition active:scale-95"
+              className="lg:hidden p-2 -ms-1 rounded-xl text-slate-700 hover:bg-slate-100 transition active:scale-95 flex-shrink-0"
               title="Open Navigation Menu"
             >
               <Menu size={22} />
             </button>
 
-            <div className="hidden sm:flex items-center gap-2.5">
+            <div className="hidden xl:flex items-center gap-2.5 whitespace-nowrap">
               <span
                 style={{
                   width: '8px',
@@ -365,10 +368,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </div>
 
           {/* Quick Actions & Language Toggle */}
-          <div className="flex items-center gap-2 sm:gap-3.5">
-            {/* Active User Role Badge (Hidden on mobile) */}
+          <div className="flex items-center gap-1.5 sm:gap-3.5 min-w-0">
+            {/* Active User Role Badge (Hidden on mobile/tablet) */}
             <div
-              className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold"
+              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap flex-shrink-0"
               style={{
                 backgroundColor: roleInfo.bg,
                 border: `1px solid ${roleInfo.border}40`,

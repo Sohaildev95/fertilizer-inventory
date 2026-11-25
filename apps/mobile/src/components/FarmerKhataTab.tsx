@@ -12,10 +12,11 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MobileCustomer } from '../types';
-import { updateCustomerBalance } from '../services/storage';
+import { submitPaymentWithSync } from '../services/sync';
 
 interface FarmerKhataTabProps {
   customers: MobileCustomer[];
+  isOnline: boolean;
   isUrdu: boolean;
   onRefreshData: () => void;
   onPaymentReceived: (customer: MobileCustomer, amount: number) => void;
@@ -23,6 +24,7 @@ interface FarmerKhataTabProps {
 
 export const FarmerKhataTab: React.FC<FarmerKhataTabProps> = ({
   customers,
+  isOnline,
   isUrdu,
   onRefreshData,
   onPaymentReceived,
@@ -102,17 +104,25 @@ export const FarmerKhataTab: React.FC<FarmerKhataTabProps> = ({
 
     setIsSubmitting(true);
     try {
-      // Deduct balance from customer
-      const updated = await updateCustomerBalance(selectedCustomer.id, -amount);
-      if (updated) {
+      const { updatedCustomer, queued } = await submitPaymentWithSync(
+        selectedCustomer,
+        amount,
+        paymentNote,
+        isOnline
+      );
+      if (updatedCustomer) {
         Alert.alert(
           isUrdu ? 'وصولی کامیاب' : 'Payment Recorded',
           isUrdu
-            ? `${selectedCustomer.nameUrdu} سے Rs ${amount.toLocaleString()} کی وصولی کھاتے میں درج کر دی گئی۔`
-            : `Rs ${amount.toLocaleString()} received from ${selectedCustomer.name}.`
+            ? `${selectedCustomer.nameUrdu} سے Rs ${amount.toLocaleString()} کی وصولی ${
+                queued ? 'آف لائن کیو میں محفوظ' : 'سرور پر اپ ڈیٹ'
+              } کر دی گئی۔`
+            : `Rs ${amount.toLocaleString()} received from ${selectedCustomer.name} (${
+                queued ? 'Queued Offline' : 'Synced'
+              }).`
         );
         onRefreshData();
-        onPaymentReceived(updated, amount);
+        onPaymentReceived(updatedCustomer, amount);
       }
       setRecoveryModalVisible(false);
     } catch {

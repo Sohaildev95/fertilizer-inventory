@@ -238,11 +238,11 @@ export default function ReportsPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap w-full lg:w-auto">
           <button
             onClick={() => loadReports()}
             disabled={isLoading}
-            className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition"
+            className="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition flex-shrink-0"
             title={isUrdu ? 'تازہ ترین کریں' : 'Refresh'}
           >
             <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-emerald-600' : ''}`} />
@@ -250,7 +250,7 @@ export default function ReportsPage() {
 
           {/* Time Range Filter (For P&L & Margins Tab) */}
           {(activeTab === 'profit_loss' || activeTab === 'margins') && (
-            <div className="w-[180px]">
+            <div className="w-[145px] sm:w-[175px]">
               <Select value={timeRange} onValueChange={setTimeRange}>
                 <SelectTrigger className="w-full bg-white border-slate-300 text-xs sm:text-sm h-[40px] rounded-xl shadow-sm">
                   <SelectValue />
@@ -267,7 +267,7 @@ export default function ReportsPage() {
 
           {/* Company Filter (For Margins Tab) */}
           {activeTab === 'margins' && (
-            <div className="w-[180px]">
+            <div className="w-[145px] sm:w-[175px]">
               <Select value={companyFilter} onValueChange={setCompanyFilter}>
                 <SelectTrigger className="w-full bg-white border-slate-300 text-xs sm:text-sm h-[40px] rounded-xl shadow-sm">
                   <SelectValue />
@@ -286,7 +286,7 @@ export default function ReportsPage() {
 
           {/* Date Picker for Roznamcha Tab */}
           {activeTab === 'roznamcha' && (
-            <div className="w-[180px]">
+            <div className="w-[165px] sm:w-[180px]">
               <DatePicker
                 value={roznamchaDate}
                 onChange={(d) => setRoznamchaDate(d)}
@@ -296,7 +296,7 @@ export default function ReportsPage() {
 
           <button
             onClick={handlePrint}
-            className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold shadow-sm flex items-center gap-2 transition active:scale-95"
+            className="px-3.5 sm:px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs sm:text-sm font-bold shadow-sm flex items-center gap-2 transition active:scale-95 whitespace-nowrap"
           >
             <Printer className="w-4 h-4" />
             <span>{isUrdu ? 'رپورٹ پرنٹ کریں' : 'Print Statement'}</span>

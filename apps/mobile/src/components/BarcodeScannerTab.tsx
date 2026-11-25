@@ -32,10 +32,11 @@ export const BarcodeScannerTab: React.FC<BarcodeScannerTabProps> = ({
     { id: string; time: string; text: string; success: boolean }[]
   >([]);
 
-  // Barcode Lookup
+  // Barcode / QR Lookup (supports both raw barcode/SKU and Web QR "SKU|Name|Price|Batch")
   const handleScanBarcode = (code: string) => {
-    const cleanCode = code.trim();
-    if (!cleanCode) return;
+    const raw = code.trim();
+    if (!raw) return;
+    const cleanCode = raw.includes('|') ? raw.split('|')[0]!.trim() : raw;
 
     const found = products.find(
       (p) => p.barcode === cleanCode || p.sku.toLowerCase() === cleanCode.toLowerCase()
@@ -206,12 +207,12 @@ export const BarcodeScannerTab: React.FC<BarcodeScannerTabProps> = ({
           <TextInput
             style={styles.barcodeInput}
             placeholder={
-              isUrdu ? 'بارکوڈ درج کریں (مثلاً 896400010012)' : 'Enter or scan barcode...'
+              isUrdu ? 'بارکوڈ یا SKU درج کریں (مثلاً FFC-UREA-50)' : 'Enter or scan barcode / SKU...'
             }
             value={barcodeInput}
             onChangeText={setBarcodeInput}
             onSubmitEditing={() => handleScanBarcode(barcodeInput)}
-            keyboardType="numeric"
+            keyboardType="default"
             placeholderTextColor="#9CA3AF"
           />
           <TouchableOpacity

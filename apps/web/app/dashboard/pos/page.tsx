@@ -314,6 +314,7 @@ export default function POSPage() {
   // Filter state
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [scanToast, setScanToast] = useState<string | null>(null);
 
   // Customer Select Dialog
   const [isCustomerModalOpen, setIsCustomerModalOpen] = useState(false);
@@ -653,13 +654,43 @@ export default function POSPage() {
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && search.trim()) {
+                    e.preventDefault();
+                    const raw = search.trim();
+                    const skuToken = raw.includes('|') ? raw.split('|')[0]!.trim() : raw;
+                    const exactMatch = products.find(
+                      (p) => p.sku.toLowerCase() === skuToken.toLowerCase(),
+                    );
+                    const target =
+                      exactMatch ||
+                      (filteredProducts.length === 1 ? filteredProducts[0] : undefined);
+
+                    if (target && target.current_stock > 0) {
+                      addItem(target, 1);
+                      setSearch('');
+                      setScanToast(
+                        isUrdu
+                          ? `✓ اسکین مکمل: ${target.urdu_name || target.name} (+1)`
+                          : `✓ Scanned: ${target.name} (+1)`,
+                      );
+                      setTimeout(() => setScanToast(null), 2200);
+                    }
+                  }
+                }}
                 placeholder={
                   isUrdu
-                    ? 'کھاد، یوریا، ڈی اے پی، سپرے، کمپنی یا SKU تلاش کریں...'
-                    : 'Search fertilizer, urea, dap, spray, company, or sku...'
+                    ? 'کھاد، یوریا، ڈی اے پی، یا بارکوڈ اسکین (Enter) کریں...'
+                    : 'Search fertilizer, company, or scan Barcode / SKU + Enter...'
                 }
                 className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-xs sm:text-sm text-slate-900 placeholder-slate-400 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none transition font-medium"
               />
+              {scanToast && (
+                <div className="mt-2 px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-1.5 animate-in fade-in">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>{scanToast}</span>
+                </div>
+              )}
             </div>
 
             {/* Category Filter Pills */}

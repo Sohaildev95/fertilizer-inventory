@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { MobileProduct, MobileCustomer, MobileCartItem, MobileSaleRecord } from '../types';
-import { recordSale } from '../services/storage';
+import { submitSaleWithSync } from '../services/sync';
 
 interface PosBillingTabProps {
   products: MobileProduct[];
@@ -191,7 +191,7 @@ export const PosBillingTab: React.FC<PosBillingTabProps> = ({
         isSynced: isOnline,
       };
 
-      const result = await recordSale(saleRecord, isOnline);
+      const result = await submitSaleWithSync(saleRecord, isOnline);
       setCart([]);
       setDiscount(0);
       setPaidAmount('');

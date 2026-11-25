@@ -862,8 +862,8 @@ export default function CustomersPage() {
           </div>
         </div>
 
-        {/* Header Action Buttons - Guaranteed Single Row */}
-        <div className="flex items-center gap-2 sm:gap-2.5 flex-nowrap overflow-x-auto no-scrollbar py-0.5 flex-shrink-0">
+        {/* Header Action Buttons */}
+        <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap xl:flex-nowrap max-w-full py-0.5">
           <button
             onClick={() => setIsReceivePaymentOpen(true)}
             className="px-3.5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs sm:text-sm font-semibold shadow-sm shadow-blue-600/20 flex items-center gap-1.5 transition active:scale-95 whitespace-nowrap flex-shrink-0"
