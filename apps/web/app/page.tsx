@@ -2,21 +2,22 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { getRoleHomeRoute } from '@fertilizer/shared';
 import { useAuth } from '../lib/auth-context';
 
 export default function Home(): React.ReactNode {
   const router = useRouter();
-  const { user, isLoading } = useAuth();
+  const { user, profile, isLoading } = useAuth();
 
   useEffect(() => {
     if (!isLoading) {
       if (user) {
-        router.push('/dashboard');
+        router.replace(getRoleHomeRoute(profile?.role));
       } else {
-        router.push('/login');
+        router.replace('/login');
       }
     }
-  }, [user, isLoading, router]);
+  }, [user, profile?.role, isLoading, router]);
 
   return (
     <div

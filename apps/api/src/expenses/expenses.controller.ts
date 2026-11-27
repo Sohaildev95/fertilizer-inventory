@@ -16,13 +16,19 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { UserRole } from '@fertilizer/shared';
 import { ExpensesService } from './expenses.service.js';
 import { CreateExpenseDto } from './dto/create-expense.dto.js';
 import { UpdateExpenseDto } from './dto/update-expense.dto.js';
 import { QueryExpensesDto } from './dto/query-expenses.dto.js';
-import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../auth/guards/roles.guard.js';
+import { Roles } from '../auth/decorators/roles.decorator.js';
 
 @ApiTags('expenses')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.SUPER_ADMIN, UserRole.SHOP_MANAGER)
 @Controller('expenses')
 export class ExpensesController {
   constructor(private readonly expensesService: ExpensesService) {}
@@ -53,8 +59,6 @@ export class ExpensesController {
   }
 
   @Post()
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Record a new daily shop expense' })
   @ApiResponse({ status: 201, description: 'Expense recorded successfully' })
   create(@Body() dto: CreateExpenseDto, @Req() req: any) {
@@ -63,8 +67,6 @@ export class ExpensesController {
   }
 
   @Put(':id')
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update an existing expense entry' })
   @ApiResponse({ status: 200, description: 'Expense updated successfully' })
   update(@Param('id') id: string, @Body() dto: UpdateExpenseDto) {
@@ -72,8 +74,6 @@ export class ExpensesController {
   }
 
   @Delete(':id')
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete / cancel an expense entry' })
   @ApiResponse({ status: 200, description: 'Expense deleted successfully' })
   remove(@Param('id') id: string) {

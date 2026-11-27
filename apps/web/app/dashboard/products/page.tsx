@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { canEditInventory } from '@fertilizer/shared';
+import { useAuth } from '../../../lib/auth-context';
 import { useLanguage } from '../../../lib/language-context';
 import { apiRequest } from '../../../lib/api-client';
 import {
@@ -207,7 +209,9 @@ const getCompanyColor = (companyName: string) => {
 };
 
 export default function ProductsPage() {
+  const { profile } = useAuth();
   const { isUrdu } = useLanguage();
+  const canManageStock = canEditInventory(profile?.role);
 
   const [products, setProducts] = useState<Product[]>(INITIAL_FALLBACK_PRODUCTS);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -499,21 +503,23 @@ export default function ProductsPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            className="flex items-center gap-2 bg-white text-emerald-950 hover:bg-emerald-50 font-bold px-5 py-2.5 rounded-xl shadow-lg transition-all transform active:scale-95"
-          >
-            <span className="text-lg">+</span>
-            <span className={isUrdu ? 'font-urdu' : ''}>
-              {isUrdu ? 'نیا آئٹم شامل کریں' : 'Add New Product'}
-            </span>
-          </button>
-        </div>
+        {canManageStock && (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsAddModalOpen(true)}
+              className="flex items-center gap-2 bg-white text-emerald-950 hover:bg-emerald-50 font-bold px-5 py-2.5 rounded-xl shadow-lg transition-all transform active:scale-95"
+            >
+              <span className="text-lg">+</span>
+              <span className={isUrdu ? 'font-urdu' : ''}>
+                {isUrdu ? 'نیا آئٹم شامل کریں' : 'Add New Product'}
+              </span>
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* 4 Summary KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Summary KPI Cards */}
+      <div className={`grid grid-cols-1 sm:grid-cols-2 ${canManageStock ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-4`}>
         {/* Card 1: Total Products */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm relative overflow-hidden group hover:shadow-md hover:border-emerald-300 transition">
           <div className="flex items-center justify-between">
@@ -589,26 +595,28 @@ export default function ProductsPage() {
           </div>
         </div>
 
-        {/* Card 4: Inventory Asset Value */}
-        <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm relative overflow-hidden group hover:shadow-md hover:border-emerald-300 transition">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
-              {isUrdu ? 'اسٹاک کی کل خرید قیمت' : 'Stock Asset Valuation'}
-            </span>
-            <span className="text-xl p-2 bg-emerald-50 text-emerald-600 rounded-xl">💰</span>
-          </div>
-          <div className="mt-3">
-            <span className="text-2xl font-extrabold text-emerald-600">
-              Rs. {stats.assetValue.toLocaleString()}
-            </span>
-            <div className="text-xs text-slate-500 mt-1 font-medium">
-              {isUrdu ? 'متوقع منافع: ' : 'Expected profit: '}
-              <span className="text-emerald-600 font-bold">
-                Rs. {stats.potentialProfit.toLocaleString()}
+        {/* Card 4: Inventory Asset Value (Hidden from Sales Staff) */}
+        {canManageStock && (
+          <div className="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm relative overflow-hidden group hover:shadow-md hover:border-emerald-300 transition">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                {isUrdu ? 'اسٹاک کی کل خرید قیمت' : 'Stock Asset Valuation'}
               </span>
+              <span className="text-xl p-2 bg-emerald-50 text-emerald-600 rounded-xl">💰</span>
+            </div>
+            <div className="mt-3">
+              <span className="text-2xl font-extrabold text-emerald-600">
+                Rs. {stats.assetValue.toLocaleString()}
+              </span>
+              <div className="text-xs text-slate-500 mt-1 font-medium">
+                {isUrdu ? 'متوقع منافع: ' : 'Expected profit: '}
+                <span className="text-emerald-600 font-bold">
+                  Rs. {stats.potentialProfit.toLocaleString()}
+                </span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Filters & Search Control Bar */}
@@ -707,18 +715,24 @@ export default function ProductsPage() {
                 <th className="py-3.5 px-4 min-w-[250px] text-blue-600 whitespace-nowrap">{isUrdu ? 'پروڈکٹ کا نام' : 'Product Name'}</th>
                 <th className="py-3.5 px-4 text-purple-600 whitespace-nowrap">{isUrdu ? 'کمپنی / برانڈ' : 'Company'}</th>
                 <th className="py-3.5 px-4 text-pink-600 whitespace-nowrap">{isUrdu ? 'پیکنگ / وزن' : 'Packing Unit'}</th>
-                <th className="py-3.5 px-4 text-rose-600 whitespace-nowrap">{isUrdu ? 'خرید قیمت' : 'Cost (خرید)'}</th>
+                {canManageStock && (
+                  <th className="py-3.5 px-4 text-rose-600 whitespace-nowrap">{isUrdu ? 'خرید قیمت' : 'Cost (خرید)'}</th>
+                )}
                 <th className="py-3.5 px-4 text-emerald-600 whitespace-nowrap">{isUrdu ? 'فروخت قیمت' : 'Sale (فروخت)'}</th>
-                <th className="py-3.5 px-4 text-teal-600 whitespace-nowrap">{isUrdu ? 'منافع فی بوری' : 'Margin / Bag'}</th>
+                {canManageStock && (
+                  <th className="py-3.5 px-4 text-teal-600 whitespace-nowrap">{isUrdu ? 'منافع فی بوری' : 'Margin / Bag'}</th>
+                )}
                 <th className="py-3.5 px-4 text-amber-600 whitespace-nowrap">{isUrdu ? 'موجودہ اسٹاک' : 'Stock Level'}</th>
                 <th className="py-3.5 px-4 text-indigo-600 whitespace-nowrap">{isUrdu ? 'گودام ریک' : 'Rack Location'}</th>
-                <th className="py-3.5 px-4 text-center text-slate-600 whitespace-nowrap">{isUrdu ? 'کارروائی' : 'Actions'}</th>
+                {canManageStock && (
+                  <th className="py-3.5 px-4 text-center text-slate-600 whitespace-nowrap">{isUrdu ? 'کارروائی' : 'Actions'}</th>
+                )}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm">
               {filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-12 text-slate-500">
+                  <td colSpan={canManageStock ? 9 : 6} className="text-center py-12 text-slate-500">
                     <div className="text-3xl mb-2 text-slate-300">🔍</div>
                     <p className="font-medium text-slate-700">
                       {isUrdu ? 'کوئی پراڈکٹ نہیں ملی' : 'No products found'}
@@ -776,9 +790,11 @@ export default function ProductsPage() {
                       </td>
 
                       {/* Cost Price */}
-                      <td className="py-3 px-4 font-mono text-slate-600 whitespace-nowrap">
-                        Rs. {p.cost_price.toLocaleString()}
-                      </td>
+                      {canManageStock && (
+                        <td className="py-3 px-4 font-mono text-slate-600 whitespace-nowrap">
+                          Rs. {p.cost_price.toLocaleString()}
+                        </td>
+                      )}
 
                       {/* Sale Price */}
                       <td className="py-3 px-4 font-mono font-bold text-slate-800 whitespace-nowrap">
@@ -786,17 +802,19 @@ export default function ProductsPage() {
                       </td>
 
                       {/* Margin */}
-                      <td className="py-3 px-4 font-mono">
-                        <span
-                          className={`inline-block whitespace-nowrap text-xs px-2 py-0.5 rounded-md font-semibold ${
-                            margin >= 200
-                              ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
-                              : 'bg-slate-100 text-slate-600 border border-slate-200'
-                          }`}
-                        >
-                          +Rs. {margin.toLocaleString()}
-                        </span>
-                      </td>
+                      {canManageStock && (
+                        <td className="py-3 px-4 font-mono">
+                          <span
+                            className={`inline-block whitespace-nowrap text-xs px-2 py-0.5 rounded-md font-semibold ${
+                              margin >= 200
+                                ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                                : 'bg-slate-100 text-slate-600 border border-slate-200'
+                            }`}
+                          >
+                            +Rs. {margin.toLocaleString()}
+                          </span>
+                        </td>
+                      )}
 
                       {/* Stock Level with Badge */}
                       <td className="py-3 px-4">
@@ -830,21 +848,23 @@ export default function ProductsPage() {
                       </td>
 
                       {/* Actions */}
-                      <td className="py-3 px-4 text-center">
-                        <div className="flex items-center justify-center gap-1.5">
-                          {/* Stock Adjustment Button */}
-                          <button
-                            title={isUrdu ? 'اسٹاک درستگی یا نقصان کا اندراج' : 'Adjust Stock'}
-                            onClick={() => {
-                              setSelectedProduct(p);
-                              setIsAdjustModalOpen(true);
-                            }}
-                            className="p-1.5 rounded-lg bg-slate-50 hover:bg-slate-200 border border-slate-200 text-slate-600 hover:text-emerald-600 transition"
-                          >
-                            ⚖️
-                          </button>
-                        </div>
-                      </td>
+                      {canManageStock && (
+                        <td className="py-3 px-4 text-center">
+                          <div className="flex items-center justify-center gap-1.5">
+                            {/* Stock Adjustment Button */}
+                            <button
+                              title={isUrdu ? 'اسٹاک درستگی یا نقصان کا اندراج' : 'Adjust Stock'}
+                              onClick={() => {
+                                setSelectedProduct(p);
+                                setIsAdjustModalOpen(true);
+                              }}
+                              className="p-1.5 rounded-lg bg-slate-50 hover:bg-slate-200 border border-slate-200 text-slate-600 hover:text-emerald-600 transition"
+                            >
+                              ⚖️
+                            </button>
+                          </div>
+                        </td>
+                      )}
                     </tr>
                   );
                 })

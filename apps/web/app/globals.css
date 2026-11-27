@@ -233,6 +233,363 @@ body {
   animation: fadeIn 0.3s ease-out forwards;
 }
 
+@keyframes spinBorder {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.login-border-ring {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 220%;
+  height: 220%;
+  background: conic-gradient(
+    from 0deg,
+    rgba(255, 255, 255, 0.14) 0deg,
+    #38bdf8 35deg,
+    #ffffff 55deg,
+    #a78bfa 80deg,
+    rgba(255, 255, 255, 0.12) 115deg,
+    rgba(255, 255, 255, 0.1) 180deg,
+    #38bdf8 215deg,
+    #ffffff 235deg,
+    #a78bfa 260deg,
+    rgba(255, 255, 255, 0.12) 295deg,
+    rgba(255, 255, 255, 0.14) 360deg
+  );
+  animation: spinBorder 5.5s linear infinite;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login-border-ring {
+    animation: none;
+  }
+}
+
+/* ========================================================
+   #18 Double Slider Login / Sign-Up Animation (Compositor-Safe)
+   ======================================================== */
+@keyframes dsShow {
+  0%,
+  49.99% {
+    opacity: 0;
+    z-index: 1;
+  }
+  50%,
+  100% {
+    opacity: 1;
+    z-index: 5;
+  }
+}
+
+@keyframes dsMobilePanelIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ds-page-root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.ds-shell {
+  position: relative;
+  width: 100%;
+  max-width: 960px;
+  background-color: #ffffff;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow:
+    0 12px 32px -12px rgba(0, 0, 0, 0.22),
+    0 0 0 1px rgba(255, 255, 255, 0.35);
+}
+
+.ds-form-panel {
+  width: 100%;
+  background-color: #ffffff;
+  color: #0f172a;
+}
+
+.ds-sign-in-panel {
+  display: block;
+}
+
+.ds-sign-up-panel {
+  display: none;
+}
+
+.ds-shell.ds-right-panel-active .ds-sign-in-panel {
+  display: none;
+}
+
+.ds-shell.ds-right-panel-active .ds-sign-up-panel {
+  display: block;
+}
+
+.ds-overlay-container {
+  display: none;
+}
+
+.ds-overlay {
+  position: relative;
+  background: linear-gradient(145deg, #064e3b 0%, #043927 52%, #0f172a 100%);
+  color: #ffffff;
+}
+
+.ds-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/loginBg.jpg');
+  background-size: cover;
+  background-position: center;
+  opacity: 0.12;
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+}
+
+.ds-overlay::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(16, 185, 129, 0.16) 0%, transparent 46%),
+    radial-gradient(circle at 82% 85%, rgba(245, 158, 11, 0.12) 0%, transparent 48%);
+  pointer-events: none;
+}
+
+.ds-ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 10px 28px;
+  border-radius: 9999px;
+  border: 1.5px solid rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ds-ghost-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px -6px rgba(0, 0, 0, 0.35);
+}
+
+.ds-ghost-btn:active {
+  transform: scale(0.97);
+}
+
+.ds-ghost-btn:focus-visible {
+  outline: 3px solid #fde047;
+  outline-offset: 3px;
+}
+
+.ds-input {
+  width: 100%;
+  min-height: 44px;
+  padding-block: 9px;
+  padding-inline: 38px 12px;
+  border-radius: 12px;
+  background-color: #f1f5f9;
+  border: 1.5px solid #e2e8f0;
+  color: #0f172a;
+  font-size: 16px;
+  font-family: inherit;
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.ds-input:focus {
+  background-color: #ffffff;
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.18);
+  outline: none;
+}
+
+.ds-input:focus-visible {
+  outline: 2px solid #059669;
+  outline-offset: 1px;
+}
+
+.ds-input:user-invalid {
+  border-color: #dc2626;
+}
+
+.ds-mobile-panel-anim {
+  animation: dsMobilePanelIn 0.28s ease-out both;
+}
+
+@media (min-width: 768px) {
+  .ds-page-root {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  .ds-input {
+    font-size: 14px;
+    min-height: 38px;
+    padding-block: 7px;
+  }
+
+  .ds-shell {
+    height: min(550px, 100%);
+    max-height: 100%;
+  }
+
+  .ds-form-panel {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 50%;
+    height: 100%;
+    overflow-y: auto;
+    display: flex !important;
+    flex-direction: column;
+    will-change: transform, opacity;
+    transition:
+      transform 0.65s cubic-bezier(0.65, 0, 0.35, 1),
+      opacity 0.65s ease;
+  }
+
+  .ds-sign-in-panel {
+    z-index: 2;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .ds-shell.ds-right-panel-active .ds-sign-in-panel {
+    display: flex !important;
+    transform: translateX(100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ds-sign-up-panel {
+    z-index: 1;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ds-shell.ds-right-panel-active .ds-sign-up-panel {
+    display: flex !important;
+    transform: translateX(100%);
+    opacity: 1;
+    z-index: 5;
+    pointer-events: auto;
+  }
+
+  .ds-overlay-container {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 100;
+    will-change: transform;
+    transition: transform 0.65s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  .ds-shell.ds-right-panel-active .ds-overlay-container {
+    transform: translateX(-100%);
+  }
+
+  .ds-overlay {
+    position: relative;
+    left: -100%;
+    width: 200%;
+    height: 100%;
+    transform: translateX(0);
+    will-change: transform;
+    transition: transform 0.65s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  .ds-shell.ds-right-panel-active .ds-overlay {
+    transform: translateX(50%);
+  }
+
+  .ds-overlay-panel {
+    position: absolute;
+    top: 0;
+    width: 50%;
+    height: 100%;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px 28px;
+    z-index: 2;
+    will-change: transform;
+    transition: transform 0.65s cubic-bezier(0.65, 0, 0.35, 1);
+  }
+
+  .ds-overlay-left {
+    left: 0;
+    transform: translateX(-20%);
+  }
+
+  .ds-shell.ds-right-panel-active .ds-overlay-left {
+    transform: translateX(0);
+  }
+
+  .ds-overlay-right {
+    right: 0;
+    transform: translateX(0);
+  }
+
+  .ds-shell.ds-right-panel-active .ds-overlay-right {
+    transform: translateX(20%);
+  }
+}
+
+@media (min-width: 768px) and (prefers-reduced-motion: no-preference) {
+  .ds-shell.ds-right-panel-active .ds-sign-up-panel {
+    animation: dsShow 0.65s both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ds-form-panel,
+  .ds-overlay-container,
+  .ds-overlay,
+  .ds-overlay-panel,
+  .ds-mobile-panel-anim {
+    animation: none !important;
+    transition: opacity 0.15s ease !important;
+  }
+
+  .ds-ghost-btn {
+    transition: background-color 0.15s ease, box-shadow 0.15s ease;
+  }
+}
+
 /* RTL & Urdu Typography */
 html[dir="rtl"] {
   text-align: right;

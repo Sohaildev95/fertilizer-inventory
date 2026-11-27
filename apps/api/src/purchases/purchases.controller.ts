@@ -9,12 +9,18 @@ import {
   Req,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { UserRole } from '@fertilizer/shared';
 import { PurchasesService } from './purchases.service.js';
 import { CreatePurchaseDto } from './dto/create-purchase.dto.js';
 import { QueryPurchasesDto } from './dto/query-purchases.dto.js';
-import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../auth/guards/roles.guard.js';
+import { Roles } from '../auth/decorators/roles.decorator.js';
 
 @ApiTags('purchases')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Roles(UserRole.SUPER_ADMIN, UserRole.SHOP_MANAGER)
 @Controller('purchases')
 export class PurchasesController {
   constructor(private readonly purchasesService: PurchasesService) {}
@@ -42,8 +48,6 @@ export class PurchasesController {
   }
 
   @Post()
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Record a new purchase stock-in entry (مال خریداری انٹری)' })
   @ApiResponse({ status: 201, description: 'Purchase recorded and stock incremented' })
   create(@Body() dto: CreatePurchaseDto, @Req() req: any) {

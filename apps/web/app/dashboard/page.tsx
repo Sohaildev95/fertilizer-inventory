@@ -2,6 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { UserRole } from '@fertilizer/shared';
 import { useAuth } from '../../lib/auth-context';
 import { useLanguage } from '../../lib/language-context';
 import {
@@ -16,6 +17,7 @@ import { DashboardCharts } from '../../components/dashboard-charts';
 export default function DashboardPage() {
   const { profile } = useAuth();
   const { isUrdu } = useLanguage();
+  const isOwner = profile?.role === UserRole.SUPER_ADMIN;
 
   const stats = [
     {
@@ -91,7 +93,13 @@ export default function DashboardPage() {
                 fontWeight: '700',
               }}
             >
-              {isUrdu ? 'دکان کا جائزہ' : 'SHOP OVERVIEW'}
+              {isOwner
+                ? isUrdu
+                  ? 'مالک کا جائزہ'
+                  : 'OWNER OVERVIEW'
+                : isUrdu
+                  ? 'منشی و آپریشنز'
+                  : 'MANAGER OPERATIONS'}
             </span>
             <span style={{ fontSize: '13px', color: '#a7f3d0' }}>
               {new Date().toLocaleDateString(isUrdu ? 'ur-PK' : 'en-PK', {
@@ -121,6 +129,21 @@ export default function DashboardPage() {
         </div>
 
         <div className="flex items-center gap-3 self-start sm:self-auto flex-shrink-0">
+          {isOwner && (
+            <Link
+              href="/dashboard/reports"
+              className="btn"
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.16)',
+                color: '#ffffff',
+                border: '1px solid rgba(255, 255, 255, 0.25)',
+                padding: '12px 16px',
+                fontWeight: '700',
+              }}
+            >
+              <span>{isUrdu ? 'نفع و نقصان' : 'Profit Reports'}</span>
+            </Link>
+          )}
           <Link
             href="/dashboard/pos"
             className="btn"

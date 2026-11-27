@@ -2,29 +2,30 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import { canRoleAccessRoute, getRoleHomeRoute } from '@fertilizer/shared';
 import { useAuth } from '../../lib/auth-context';
 import {
-  LayoutDashboard,
-  Package,
+  Gauge,
+  Wheat,
+  ScanBarcode,
+  ScanQrCode,
+  PackagePlus,
+  BookUser,
+  Radio,
+  Warehouse,
+  ShieldCheck,
+  WalletCards,
+  ChartNoAxesCombined,
+  Compass,
   ShoppingCart,
-  Truck,
-  Users,
-  Building2,
-  DollarSign,
-  FileBarChart2,
-  Settings,
   LogOut,
   Sprout,
   Menu,
   X,
   PlusCircle,
   Bell,
-  Shield,
-  ChevronDown,
   BookOpen,
-  Megaphone,
-  QrCode,
 } from 'lucide-react';
 import { useLanguage } from '../../lib/language-context';
 import { LanguageToggle } from '../../components/language-toggle';
@@ -34,22 +35,23 @@ interface NavItem {
   urduName: string;
   href: string;
   icon: any;
+  accent: string;
   badge?: string;
 }
 
 const navItems: NavItem[] = [
-  { name: 'Dashboard', urduName: 'ڈیش بورڈ', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'POS Counter', urduName: 'کاؤنٹر سیل (پرچی)', href: '/dashboard/pos', icon: ShoppingCart, badge: 'FAST' },
-  { name: 'Products & Stock', urduName: 'کھاد اسٹاک و پراڈکٹس', href: '/dashboard/products', icon: Package },
-  { name: 'Barcodes & Stickers', urduName: 'بارکوڈ و اسٹیکر پرنٹ', href: '/dashboard/barcodes', icon: QrCode, badge: 'PRINT' },
-  { name: 'Purchases', urduName: 'مال کی خریداری', href: '/dashboard/purchases', icon: Truck },
-  { name: 'Customers & Khata', urduName: 'زمیندار کھاتہ رجسٹر', href: '/dashboard/customers', icon: Users },
-  { name: 'Broadcast & SMS', urduName: 'پیغامات و براڈکاسٹ', href: '/dashboard/broadcast', icon: Megaphone, badge: 'SMS' },
-  { name: 'Vendors (Suppliers)', urduName: 'سپلائرز و کمپنیاں', href: '/dashboard/vendors', icon: Building2 },
-  { name: 'Vendor Portal', urduName: 'کھاد کمپنی پورٹل', href: '/dashboard/vendors/portal', icon: Shield, badge: 'PORTAL' },
-  { name: 'Daily Expenses', urduName: 'روزانہ کا خرچہ', href: '/dashboard/expenses', icon: DollarSign },
-  { name: 'Reports & Profit', urduName: 'نفع و نقصان رپورٹس', href: '/dashboard/reports', icon: FileBarChart2 },
-  { name: 'User Manual & Guide', urduName: 'رہنمائی و یوزر مینوئل', href: '/dashboard/guide', icon: BookOpen, badge: 'GUIDE' },
+  { name: 'Dashboard', urduName: 'ڈیش بورڈ', href: '/dashboard', icon: Gauge, accent: '#34d399' },
+  { name: 'POS Counter', urduName: 'کاؤنٹر سیل (پرچی)', href: '/dashboard/pos', icon: ScanBarcode, accent: '#fbbf24', badge: 'FAST' },
+  { name: 'Products & Stock', urduName: 'کھاد اسٹاک و پراڈکٹس', href: '/dashboard/products', icon: Wheat, accent: '#4ade80' },
+  { name: 'Barcodes & Stickers', urduName: 'بارکوڈ و اسٹیکر پرنٹ', href: '/dashboard/barcodes', icon: ScanQrCode, accent: '#22d3ee', badge: 'PRINT' },
+  { name: 'Purchases', urduName: 'مال کی خریداری', href: '/dashboard/purchases', icon: PackagePlus, accent: '#38bdf8' },
+  { name: 'Customers & Khata', urduName: 'زمیندار کھاتہ رجسٹر', href: '/dashboard/customers', icon: BookUser, accent: '#a3e635' },
+  { name: 'Broadcast & SMS', urduName: 'پیغامات و براڈکاسٹ', href: '/dashboard/broadcast', icon: Radio, accent: '#2dd4bf', badge: 'SMS' },
+  { name: 'Vendors (Suppliers)', urduName: 'سپلائرز و کمپنیاں', href: '/dashboard/vendors', icon: Warehouse, accent: '#818cf8' },
+  { name: 'Vendor Portal', urduName: 'کھاد کمپنی پورٹل', href: '/dashboard/vendors/portal', icon: ShieldCheck, accent: '#c084fc', badge: 'PORTAL' },
+  { name: 'Daily Expenses', urduName: 'روزانہ کا خرچہ', href: '/dashboard/expenses', icon: WalletCards, accent: '#fb7185' },
+  { name: 'Reports & Profit', urduName: 'نفع و نقصان رپورٹس', href: '/dashboard/reports', icon: ChartNoAxesCombined, accent: '#facc15' },
+  { name: 'User Manual & Guide', urduName: 'رہنمائی و یوزر مینوئل', href: '/dashboard/guide', icon: Compass, accent: '#6ee7b7', badge: 'GUIDE' },
 ];
 
 const getRoleDetails = (role?: string) => {
@@ -63,16 +65,33 @@ const getRoleDetails = (role?: string) => {
     case 'vendor':
       return { label: 'Vendor Portal', urdu: 'کھاد کمپنی سپلائر', icon: '🚚', color: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.12)', border: '#8b5cf6' };
     default:
-      return { label: 'Super Admin', urdu: 'دکان مالک (چاچو)', icon: '👑', color: '#10b981', bg: 'rgba(16, 185, 129, 0.12)', border: '#10b981' };
+      return { label: 'Staff Member', urdu: 'اسٹاف اکاؤنٹ', icon: '👤', color: '#64748b', bg: 'rgba(100, 116, 139, 0.12)', border: '#64748b' };
   }
 };
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const { user, profile, logout } = useAuth();
+  const { user, profile, isLoading, logout } = useAuth();
   const { isUrdu, t } = useLanguage();
   const pathname = usePathname();
+  const router = useRouter();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const roleInfo = getRoleDetails(profile?.role);
+  const homeRoute = getRoleHomeRoute(profile?.role);
+  const canAccessCurrentRoute = !profile?.role || canRoleAccessRoute(profile.role, pathname);
+  const visibleNavItems = navItems.filter((item) =>
+    profile?.role ? canRoleAccessRoute(profile.role, item.href) : false,
+  );
+  const canCreatePosBill = Boolean(profile?.role && canRoleAccessRoute(profile.role, '/dashboard/pos'));
+  const canCreateStockIn = Boolean(
+    profile?.role && canRoleAccessRoute(profile.role, '/dashboard/purchases/new'),
+  );
+
+  // Redirect to the user's role home portal if they visit a restricted dashboard URL
+  useEffect(() => {
+    if (!isLoading && profile?.role && !canRoleAccessRoute(profile.role, pathname)) {
+      router.replace(getRoleHomeRoute(profile.role));
+    }
+  }, [isLoading, profile?.role, pathname, router]);
 
   // Auto-close mobile/tablet drawer when tab/route changes
   useEffect(() => {
@@ -134,7 +153,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           }}
         >
           <Link
-            href="/dashboard"
+            href={homeRoute}
             onClick={() => setSidebarOpen(false)}
             style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden', textDecoration: 'none' }}
           >
@@ -192,7 +211,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             gap: '3px',
           }}
         >
-          {navItems.map((item) => {
+          {visibleNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
 
@@ -201,24 +220,53 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 key={item.href}
                 href={item.href}
                 onClick={() => setSidebarOpen(false)}
+                className="group"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '9px 12px',
-                  borderRadius: '10px',
+                  padding: '7px 10px',
+                  borderRadius: '12px',
                   textDecoration: 'none',
                   fontSize: '13.5px',
                   fontWeight: isActive ? '700' : '500',
-                  color: isActive ? '#ffffff' : '#cbd5e1',
-                  background: isActive ? 'rgba(16, 185, 129, 0.2)' : 'transparent',
-                  border: isActive ? '1px solid rgba(52, 211, 153, 0.4)' : '1px solid transparent',
-                  transition: 'all 0.15s ease',
+                  color: isActive ? '#ffffff' : '#e2e8f0',
+                  background: isActive
+                    ? `linear-gradient(90deg, ${item.accent}24 0%, rgba(16, 185, 129, 0.08) 100%)`
+                    : 'transparent',
+                  border: isActive
+                    ? `1px solid ${item.accent}60`
+                    : '1px solid transparent',
+                  boxShadow: isActive ? `0 4px 14px -4px ${item.accent}35` : 'none',
+                  transition: 'all 0.18s ease',
                 }}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Icon size={18} color={isActive ? '#34d399' : '#94a3b8'} />
-                  <span style={{ fontFamily: isUrdu ? 'Noto Nastaliq Urdu, sans-serif' : 'inherit' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '11px', minWidth: 0 }}>
+                  <div
+                    className="transition-transform duration-200 group-hover:scale-110"
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      flexShrink: 0,
+                      background: isActive ? `${item.accent}30` : `${item.accent}18`,
+                      border: `1px solid ${isActive ? `${item.accent}70` : `${item.accent}28`}`,
+                      boxShadow: isActive ? `0 0 12px ${item.accent}40` : 'none',
+                    }}
+                  >
+                    <Icon
+                      size={16}
+                      strokeWidth={isActive ? 2.4 : 2}
+                      color={isActive ? '#ffffff' : item.accent}
+                    />
+                  </div>
+                  <span
+                    className="truncate"
+                    style={{ fontFamily: isUrdu ? 'Noto Nastaliq Urdu, sans-serif' : 'inherit' }}
+                  >
                     {isUrdu ? item.urduName : item.name}
                   </span>
                 </div>
@@ -398,22 +446,26 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </Link>
 
             {/* Quick POS Bill Button */}
-            <Link
-              href="/dashboard/pos"
-              className="btn btn-primary px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm active:scale-95 whitespace-nowrap"
-            >
-              <ShoppingCart size={15} />
-              <span>{isUrdu ? 'نیا بل' : 'POS Bill'}</span>
-            </Link>
+            {canCreatePosBill && (
+              <Link
+                href="/dashboard/pos"
+                className="btn btn-primary px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold flex items-center gap-1.5 shadow-sm active:scale-95 whitespace-nowrap"
+              >
+                <ShoppingCart size={15} />
+                <span>{isUrdu ? 'نیا بل' : 'POS Bill'}</span>
+              </Link>
+            )}
 
-            {/* Stock In Button (Hidden on small mobile) */}
-            <Link
-              href="/dashboard/purchases/new"
-              className="hidden sm:inline-flex btn btn-secondary px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold items-center gap-1.5 shadow-sm active:scale-95 whitespace-nowrap"
-            >
-              <PlusCircle size={15} />
-              <span>{isUrdu ? 'مال خریداری' : 'Stock In'}</span>
-            </Link>
+            {/* Stock In Button (Hidden on small mobile & restricted roles) */}
+            {canCreateStockIn && (
+              <Link
+                href="/dashboard/purchases/new"
+                className="hidden sm:inline-flex btn btn-secondary px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold items-center gap-1.5 shadow-sm active:scale-95 whitespace-nowrap"
+              >
+                <PlusCircle size={15} />
+                <span>{isUrdu ? 'مال خریداری' : 'Stock In'}</span>
+              </Link>
+            )}
 
             {/* Notification Bell */}
             <div
@@ -450,7 +502,36 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Dynamic Page Content - Scrollable Inner Area */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden p-3.5 sm:p-6 lg:p-8 custom-scrollbar">
           <div className="w-full max-w-[1920px] mx-auto min-w-0">
-            {children}
+            {isLoading || !user || !profile ? (
+              <div className="min-h-[380px] flex flex-col items-center justify-center gap-3 text-slate-500">
+                <div className="w-9 h-9 rounded-full border-4 border-emerald-200 border-t-emerald-600 animate-spin" />
+                <span className="text-sm font-semibold">
+                  {isUrdu ? 'اکاؤنٹ و اختیارات کی تصدیق ہو رہی ہے...' : 'Verifying account role permissions...'}
+                </span>
+              </div>
+            ) : !canAccessCurrentRoute ? (
+              <div className="max-w-lg mx-auto my-12 bg-white border border-amber-200 rounded-2xl p-6 text-center shadow-sm space-y-3">
+                <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center mx-auto text-xl">
+                  🔒
+                </div>
+                <h2 className="text-lg font-extrabold text-slate-900">
+                  {isUrdu ? 'رسائی محدود ہے (Role Protected)' : 'Access Restricted for Current Role'}
+                </h2>
+                <p className="text-xs text-slate-600">
+                  {isUrdu
+                    ? 'آپ کے اکاؤنٹ رول کو اس صفحے کی اجازت نہیں ہے۔ آپ کو آپ کے پورٹل پر منتقل کیا جا رہا ہے۔'
+                    : 'Your assigned account role does not include access to this module. Redirecting to your portal...'}
+                </p>
+                <Link
+                  href={homeRoute}
+                  className="inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-700 transition"
+                >
+                  {isUrdu ? 'اپنے پورٹل پر جائیں' : 'Go to My Portal'}
+                </Link>
+              </div>
+            ) : (
+              children
+            )}
           </div>
         </main>
       </div>

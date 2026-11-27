@@ -9,12 +9,18 @@ import {
   Req,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { UserRole } from '@fertilizer/shared';
 import { SalesService } from './sales.service.js';
 import { CreateSaleDto } from './dto/create-sale.dto.js';
 import { QuerySalesDto } from './dto/query-sales.dto.js';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard.js';
+import { OptionalRolesGuard } from '../auth/guards/optional-roles.guard.js';
+import { Roles } from '../auth/decorators/roles.decorator.js';
 
 @ApiTags('sales')
+@ApiBearerAuth()
+@UseGuards(OptionalJwtAuthGuard, OptionalRolesGuard)
+@Roles(UserRole.SUPER_ADMIN, UserRole.SHOP_MANAGER, UserRole.SALES_STAFF)
 @Controller('sales')
 export class SalesController {
   constructor(private readonly salesService: SalesService) {}
@@ -42,8 +48,6 @@ export class SalesController {
   }
 
   @Post()
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new sale invoice at POS Counter' })
   @ApiResponse({ status: 201, description: 'Sale created and stock deducted' })
   create(@Body() dto: CreateSaleDto, @Req() req: any) {

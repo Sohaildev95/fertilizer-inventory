@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Profile, UserRole } from '@fertilizer/shared';
+import { Profile, getRoleHomeRoute } from '@fertilizer/shared';
 import { apiRequest } from './api-client';
 
 export interface UserSession {
@@ -79,9 +79,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!user && !isPublic) {
       router.push('/login');
     } else if (user && isPublic) {
-      router.push('/dashboard');
+      router.replace(getRoleHomeRoute(profile?.role));
     }
-  }, [user, isLoading, pathname, router]);
+  }, [user, profile?.role, isLoading, pathname, router]);
 
   const login = async (email: string, password: string) => {
     const res = await apiRequest('/auth/login', {
@@ -101,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem('fertilizer_user', JSON.stringify(userData));
       localStorage.setItem('fertilizer_profile', JSON.stringify(profileData));
 
-      router.push('/dashboard');
+      router.push(getRoleHomeRoute(profileData?.role));
     }
   };
 
@@ -124,7 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem('fertilizer_user', JSON.stringify(userData));
         localStorage.setItem('fertilizer_profile', JSON.stringify(profileData));
 
-        router.push('/dashboard');
+        router.push(getRoleHomeRoute(profileData?.role));
       } else {
         router.push('/login');
       }

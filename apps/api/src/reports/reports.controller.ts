@@ -1,8 +1,13 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { UserRole } from '@fertilizer/shared';
 import { ReportsService } from './reports.service.js';
 import { QueryReportsDto } from './dto/query-reports.dto.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard.js';
+import { RolesGuard } from '../auth/guards/roles.guard.js';
+import { OptionalRolesGuard } from '../auth/guards/optional-roles.guard.js';
+import { Roles } from '../auth/decorators/roles.decorator.js';
 
 @ApiTags('reports')
 @Controller('reports')
@@ -10,7 +15,8 @@ export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
   @Get('profit-loss')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary:
@@ -22,7 +28,8 @@ export class ReportsController {
   }
 
   @Get('roznamcha')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary:
@@ -34,7 +41,8 @@ export class ReportsController {
   }
 
   @Get('stock-valuation')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary:
@@ -46,7 +54,8 @@ export class ReportsController {
   }
 
   @Get('market-udhar')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'Get Market Udhar (Farmer Receivables) and Recent Recovery list',
@@ -57,7 +66,8 @@ export class ReportsController {
   }
 
   @Get('per-bag-margins')
-  @UseGuards(OptionalJwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard, OptionalRolesGuard)
+  @Roles(UserRole.SUPER_ADMIN)
   @ApiBearerAuth()
   @ApiOperation({
     summary:

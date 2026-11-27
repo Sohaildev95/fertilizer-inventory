@@ -11,14 +11,20 @@ import {
   Req,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { UserRole } from '@fertilizer/shared';
 import { CustomersService } from './customers.service.js';
 import { CreateCustomerDto } from './dto/create-customer.dto.js';
 import { QueryCustomersDto } from './dto/query-customers.dto.js';
 import { CreatePaymentDto } from './dto/create-payment.dto.js';
 import { AddCropCycleDto } from './dto/crop-cycle.dto.js';
 import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard.js';
+import { OptionalRolesGuard } from '../auth/guards/optional-roles.guard.js';
+import { Roles } from '../auth/decorators/roles.decorator.js';
 
 @ApiTags('customers')
+@ApiBearerAuth()
+@UseGuards(OptionalJwtAuthGuard, OptionalRolesGuard)
+@Roles(UserRole.SUPER_ADMIN, UserRole.SHOP_MANAGER, UserRole.SALES_STAFF)
 @Controller('customers')
 export class CustomersController {
   constructor(private readonly customersService: CustomersService) {}
@@ -53,8 +59,6 @@ export class CustomersController {
   }
 
   @Post()
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Register a new farmer / customer with credit limit' })
   @ApiResponse({ status: 201, description: 'Customer registered successfully' })
   create(@Body() dto: CreateCustomerDto) {
@@ -62,8 +66,6 @@ export class CustomersController {
   }
 
   @Put(':id')
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Update customer details' })
   @ApiResponse({ status: 200, description: 'Customer updated successfully' })
   update(@Param('id') id: string, @Body() dto: Partial<CreateCustomerDto>) {
@@ -71,8 +73,6 @@ export class CustomersController {
   }
 
   @Get(':id/ledger')
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Get customer running Khata ledger statement' })
   @ApiResponse({ status: 200, description: 'Customer ledger returned' })
   getLedger(@Param('id') id: string) {
@@ -80,8 +80,6 @@ export class CustomersController {
   }
 
   @Post(':id/payments')
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Record cash or cheque recovery payment received from farmer' })
   @ApiResponse({ status: 201, description: 'Payment recorded and balance deducted' })
   recordPayment(
@@ -101,8 +99,6 @@ export class CustomersController {
   }
 
   @Post(':id/crop-cycles')
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Add or update crop season cycle for a farmer' })
   @ApiResponse({ status: 201, description: 'Crop season cycle added successfully' })
   addFarmerCropCycle(
@@ -113,8 +109,6 @@ export class CustomersController {
   }
 
   @Delete(':id/crop-cycles/:cycleId')
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Delete a crop cycle for a farmer' })
   @ApiResponse({ status: 200, description: 'Crop cycle removed' })
   deleteFarmerCropCycle(

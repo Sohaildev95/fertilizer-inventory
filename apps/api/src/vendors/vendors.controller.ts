@@ -10,19 +10,25 @@ import {
   Req,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { UserRole } from '@fertilizer/shared';
 import { VendorsService } from './vendors.service.js';
 import { CreateVendorDto } from './dto/create-vendor.dto.js';
 import { QueryVendorsDto } from './dto/query-vendors.dto.js';
 import { CreateVendorPaymentDto } from './dto/create-vendor-payment.dto.js';
 import { VendorPriceUpdateDto, VendorDispatchNoticeDto } from './dto/vendor-portal.dto.js';
-import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard.js';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../auth/guards/roles.guard.js';
+import { Roles } from '../auth/decorators/roles.decorator.js';
 
 @ApiTags('vendors')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('vendors')
 export class VendorsController {
   constructor(private readonly vendorsService: VendorsService) {}
 
   @Get('portal/dashboard')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.VENDOR)
   @ApiOperation({ summary: 'Get Vendor Self-Service Portal dashboard & live metrics' })
   @ApiResponse({ status: 200, description: 'Vendor portal data returned' })
   getPortalDashboard(@Query('vendorId') vendorId?: string) {
@@ -30,8 +36,7 @@ export class VendorsController {
   }
 
   @Post('portal/:id/price-update')
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.VENDOR)
   @ApiOperation({ summary: 'Submit vendor price change notification to shop' })
   @ApiResponse({ status: 201, description: 'Price notification recorded' })
   submitPriceUpdate(
@@ -42,8 +47,7 @@ export class VendorsController {
   }
 
   @Post('portal/:id/dispatch-notice')
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.VENDOR)
   @ApiOperation({ summary: 'Submit vendor truck advance dispatch notice' })
   @ApiResponse({ status: 201, description: 'Dispatch notice recorded' })
   submitDispatchNotice(
@@ -54,6 +58,7 @@ export class VendorsController {
   }
 
   @Get('stats/summary')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.SHOP_MANAGER)
   @ApiOperation({ summary: 'Get total payable, advance, and vendor summary stats' })
   @ApiResponse({ status: 200, description: 'Summary stats returned' })
   getSummaryStats() {
@@ -61,6 +66,7 @@ export class VendorsController {
   }
 
   @Get()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.SHOP_MANAGER, UserRole.VENDOR)
   @ApiOperation({ summary: 'List and search vendors / suppliers' })
   @ApiResponse({ status: 200, description: 'Vendors list returned successfully' })
   findAll(@Query() query: QueryVendorsDto) {
@@ -68,6 +74,7 @@ export class VendorsController {
   }
 
   @Get(':id')
+  @Roles(UserRole.SUPER_ADMIN, UserRole.SHOP_MANAGER)
   @ApiOperation({ summary: 'Get single vendor details with recent purchases and payments' })
   @ApiResponse({ status: 200, description: 'Vendor details returned' })
   @ApiResponse({ status: 404, description: 'Vendor not found' })
@@ -76,8 +83,7 @@ export class VendorsController {
   }
 
   @Post()
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.SHOP_MANAGER)
   @ApiOperation({ summary: 'Register a new vendor / supplier' })
   @ApiResponse({ status: 201, description: 'Vendor registered successfully' })
   create(@Body() dto: CreateVendorDto) {
@@ -85,8 +91,7 @@ export class VendorsController {
   }
 
   @Put(':id')
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.SHOP_MANAGER)
   @ApiOperation({ summary: 'Update vendor details' })
   @ApiResponse({ status: 200, description: 'Vendor updated successfully' })
   update(@Param('id') id: string, @Body() dto: Partial<CreateVendorDto>) {
@@ -94,8 +99,7 @@ export class VendorsController {
   }
 
   @Get(':id/ledger')
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.SHOP_MANAGER)
   @ApiOperation({ summary: 'Get vendor running Khata ledger statement' })
   @ApiResponse({ status: 200, description: 'Vendor ledger returned' })
   getLedger(@Param('id') id: string) {
@@ -103,8 +107,7 @@ export class VendorsController {
   }
 
   @Post(':id/payments')
-  @UseGuards(OptionalJwtAuthGuard)
-  @ApiBearerAuth()
+  @Roles(UserRole.SUPER_ADMIN, UserRole.SHOP_MANAGER)
   @ApiOperation({ summary: 'Record payment sent to vendor (ادائیگی کا اندراج)' })
   @ApiResponse({ status: 201, description: 'Payment recorded and payable balance updated' })
   recordPayment(
