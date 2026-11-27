@@ -1,11 +1,12 @@
 import {
   Injectable,
   UnauthorizedException,
+  ForbiddenException,
   BadRequestException,
   NotFoundException,
   Logger,
 } from '@nestjs/common';
-import { UserRole } from '@fertilizer/shared';
+import { UserRole, getPortalForRole, isRoleAllowedInPortal } from '@fertilizer/shared';
 import { SupabaseService } from '../supabase/supabase.service.js';
 import { RegisterDto } from './dto/register.dto.js';
 import { LoginDto } from './dto/login.dto.js';
@@ -120,6 +121,18 @@ export class AuthService {
 
     if (!profile.is_active) {
       throw new UnauthorizedException('Yeh account ghair-fuaal hai. Baraye meharbani admin se rabta karein.');
+    }
+
+    if (dto.portal && !isRoleAllowedInPortal(profile.role, dto.portal)) {
+      const expectedPortal = getPortalForRole(profile.role);
+      const portalLabels: Record<string, string> = {
+        shop: 'Owner / Manager',
+        pos: 'POS Counter',
+        vendor: 'Vendor',
+      };
+      throw new ForbiddenException(
+        `Yeh account "${portalLabels[expectedPortal]}" portal ke liye hai. Baraye meharbani upar "${portalLabels[expectedPortal]}" tab select kar ke sign in karein.`,
+      );
     }
 
     return {

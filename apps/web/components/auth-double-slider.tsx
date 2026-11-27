@@ -90,7 +90,7 @@ export function AuthDoubleSlider({ initialMode = 'login' }: AuthDoubleSliderProp
     setLoginLoading(true);
 
     try {
-      await login(loginEmail, loginPassword);
+      await login(loginEmail, loginPassword, selectedPortal);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : null;
       setLoginError(message || 'Login failed. Baraye meharbani details check karein.');
@@ -289,20 +289,20 @@ export function AuthDoubleSlider({ initialMode = 'login' }: AuthDoubleSliderProp
                 {selectedPortal === 'vendor'
                   ? isUrdu
                     ? 'کھاد کمپنی و سپلائر پورٹل میں سائن ان کریں'
-                    : 'Sign in to Supplier & Dispatch Portal'
+                    : 'Supplier / Vendor accounts only (Vendor Portal)'
                   : selectedPortal === 'pos'
                     ? isUrdu
-                      ? 'کاؤنٹر بلنگ اور اسٹاک اسکینر کھولیں'
-                      : 'Sign in to Counter Billing & Khata'
+                      ? 'کاؤنٹر بلنگ سیلزمین پورٹل میں سائن ان کریں'
+                      : 'Counter Sales Staff accounts only (Direct POS)'
                     : isUrdu
-                      ? 'اپنی دکان کا مکمل ڈیش بورڈ اور کھاتہ کھولیں'
-                      : 'Access your dealership dashboard & khata'}
+                      ? 'دکان مالک یا منشی پورٹل میں سائن ان کریں'
+                      : 'Owner & Shop Manager accounts only'}
               </p>
 
               {/* Workspace Switcher Pills */}
               <div className="grid grid-cols-3 gap-1 p-1 rounded-xl bg-slate-100 border border-slate-200/80 mb-3">
                 {[
-                  { id: 'shop' as const, labelEn: 'Owner', labelUr: 'مالک / منشی', icon: '👑' },
+                  { id: 'shop' as const, labelEn: 'Owner / Mgr', labelUr: 'مالک / منشی', icon: '👑' },
                   { id: 'pos' as const, labelEn: 'POS Counter', labelUr: 'کاؤنٹر', icon: '🛒' },
                   { id: 'vendor' as const, labelEn: 'Vendor', labelUr: 'سپلائر', icon: '🚚' },
                 ].map((tab) => {
@@ -312,7 +312,10 @@ export function AuthDoubleSlider({ initialMode = 'login' }: AuthDoubleSliderProp
                       key={tab.id}
                       type="button"
                       aria-pressed={active}
-                      onClick={() => setSelectedPortal(tab.id)}
+                      onClick={() => {
+                        setSelectedPortal(tab.id);
+                        setLoginError(null);
+                      }}
                       className="min-h-[34px] py-1 px-1.5 rounded-lg text-[11px] font-bold transition-all flex items-center justify-center gap-1"
                       style={{
                         backgroundColor: active ? '#ffffff' : 'transparent',

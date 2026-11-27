@@ -6,6 +6,8 @@ import {
   canRoleAccessRoute,
   canEditInventory,
   canViewCostAndReports,
+  getPortalForRole,
+  isRoleAllowedInPortal,
 } from '@fertilizer/shared';
 import { RolesGuard } from './roles.guard.js';
 import { OptionalRolesGuard } from './optional-roles.guard.js';
@@ -124,5 +126,23 @@ describe('Shared RBAC Route & Feature Permissions', () => {
 
     expect(canViewCostAndReports(UserRole.SUPER_ADMIN)).toBe(true);
     expect(canViewCostAndReports(UserRole.SHOP_MANAGER)).toBe(false);
+  });
+
+  it('validates login portal tab against account role cleanly', () => {
+    expect(getPortalForRole(UserRole.SUPER_ADMIN)).toBe('shop');
+    expect(getPortalForRole(UserRole.SHOP_MANAGER)).toBe('shop');
+    expect(getPortalForRole(UserRole.SALES_STAFF)).toBe('pos');
+    expect(getPortalForRole(UserRole.VENDOR)).toBe('vendor');
+
+    expect(isRoleAllowedInPortal(UserRole.SUPER_ADMIN, 'shop')).toBe(true);
+    expect(isRoleAllowedInPortal(UserRole.SHOP_MANAGER, 'shop')).toBe(true);
+    expect(isRoleAllowedInPortal(UserRole.VENDOR, 'shop')).toBe(false);
+    expect(isRoleAllowedInPortal(UserRole.SALES_STAFF, 'shop')).toBe(false);
+
+    expect(isRoleAllowedInPortal(UserRole.SALES_STAFF, 'pos')).toBe(true);
+    expect(isRoleAllowedInPortal(UserRole.SUPER_ADMIN, 'pos')).toBe(false);
+
+    expect(isRoleAllowedInPortal(UserRole.VENDOR, 'vendor')).toBe(true);
+    expect(isRoleAllowedInPortal(UserRole.SUPER_ADMIN, 'vendor')).toBe(false);
   });
 });

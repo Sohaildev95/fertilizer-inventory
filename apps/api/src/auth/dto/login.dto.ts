@@ -1,5 +1,6 @@
-import { IsEmail, IsString, MinLength } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { IsEmail, IsString, MinLength, IsOptional, IsIn } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import type { LoginPortal } from '@fertilizer/shared';
 
 export class LoginDto {
   @ApiProperty({ example: 'admin@fertilizer.pk', description: 'Registered email address' })
@@ -10,4 +11,12 @@ export class LoginDto {
   @IsString()
   @MinLength(6, { message: 'Password kam az kam 6 characters ka hona chahiye' })
   password!: string;
+
+  @ApiPropertyOptional({
+    enum: ['shop', 'pos', 'vendor'],
+    description: 'Selected login portal tab',
+  })
+  @IsOptional()
+  @IsIn(['shop', 'pos', 'vendor'], { message: 'Invalid portal selection' })
+  portal?: LoginPortal;
 }

@@ -94,3 +94,29 @@ export function canEditInventory(role?: string | null): boolean {
 export function canViewCostAndReports(role?: string | null): boolean {
   return normalizeUserRole(role) === UserRole.SUPER_ADMIN;
 }
+
+export type LoginPortal = 'shop' | 'pos' | 'vendor';
+
+export const PORTAL_ALLOWED_ROLES: Record<LoginPortal, UserRole[]> = {
+  shop: [UserRole.SUPER_ADMIN, UserRole.SHOP_MANAGER],
+  pos: [UserRole.SALES_STAFF],
+  vendor: [UserRole.VENDOR],
+};
+
+export function getPortalForRole(role?: string | null): LoginPortal {
+  const normalized = normalizeUserRole(role);
+  if (normalized === UserRole.VENDOR) return 'vendor';
+  if (normalized === UserRole.SALES_STAFF) return 'pos';
+  return 'shop';
+}
+
+export function isRoleAllowedInPortal(
+  role?: string | null,
+  portal?: LoginPortal | null,
+): boolean {
+  if (!portal) return true;
+  if (!role) return false;
+  const normalized = normalizeUserRole(role);
+  if (normalized !== role) return false;
+  return PORTAL_ALLOWED_ROLES[portal].includes(normalized);
+}

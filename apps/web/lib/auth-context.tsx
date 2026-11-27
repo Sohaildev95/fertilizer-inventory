@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import { Profile, getRoleHomeRoute } from '@fertilizer/shared';
+import { Profile, LoginPortal, getRoleHomeRoute } from '@fertilizer/shared';
 import { apiRequest } from './api-client';
 
 export interface UserSession {
@@ -15,7 +15,7 @@ interface AuthContextType {
   profile: Profile | null;
   token: string | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, portal?: LoginPortal) => Promise<void>;
   register: (data: any) => Promise<void>;
   logout: () => void;
   refreshProfile: () => Promise<void>;
@@ -83,10 +83,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [user, profile?.role, isLoading, pathname, router]);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, portal?: LoginPortal) => {
     const res = await apiRequest('/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, ...(portal ? { portal } : {}) }),
     });
 
     if (res?.data) {
